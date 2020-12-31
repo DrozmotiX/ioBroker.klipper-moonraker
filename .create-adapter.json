@@ -1,0 +1,39 @@
+{
+	"cli": true,
+	"adapterName": "klipper-moonraker",
+	"title": "Klipper Moonraker",
+	"description": "Adapter to interact with klipper by API",
+	"keywords": [
+		"klipper",
+		"printing",
+		"3d"
+	],
+	"expert": "yes",
+	"features": [
+		"adapter"
+	],
+	"adminFeatures": [],
+	"type": "hardware",
+	"startMode": "daemon",
+	"connectionType": "local",
+	"dataSource": "poll",
+	"connectionIndicator": "yes",
+	"language": "JavaScript",
+	"adminReact": "no",
+	"tools": [
+		"ESLint",
+		"type checking"
+	],
+	"indentation": "Tab",
+	"quotes": "single",
+	"es6class": "yes",
+	"authorName": "DutchmanNL",
+	"authorGithub": "iobroker-community-adapters",
+	"authorEmail": "rdrozda@hotmail.com",
+	"gitRemoteProtocol": "HTTPS",
+	"gitCommit": "yes",
+	"license": "MIT License",
+	"ci": "gh-actions",
+	"dependabot": "yes",
+	"creatorVersion": "1.31.0"
+}

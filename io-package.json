@@ -1,0 +1,104 @@
+{
+	"common": {
+		"name": "klipper-moonraker",
+		"version": "0.0.1",
+		"news": {
+			"0.0.1": {
+				"en": "initial release",
+				"de": "Erstveröffentlichung",
+				"ru": "Начальная версия",
+				"pt": "lançamento inicial",
+				"nl": "Eerste uitgave",
+				"fr": "Première version",
+				"it": "Versione iniziale",
+				"es": "Versión inicial",
+				"pl": "Pierwsze wydanie",
+				"zh-cn": "首次出版"
+			}
+		},
+		"title": "Klipper Moonraker",
+		"titleLang": {
+			"en": "Klipper Moonraker",
+			"de": "Klipper Moonraker",
+			"ru": "Клиппер Мунрейкер",
+			"pt": "Klipper Moonraker",
+			"nl": "Klipper Moonraker",
+			"fr": "Klipper Moonraker",
+			"it": "Klipper Moonraker",
+			"es": "Klipper Moonraker",
+			"pl": "Klipper Moonraker",
+			"zh-cn": "Klipper Moonraker"
+		},
+		"desc": {
+			"en": "Adapter to interact with klipper by API",
+			"de": "Adapter zur Interaktion mit klipper per API",
+			"ru": "Адаптер для взаимодействия с klipper по API",
+			"pt": "Adaptador para interagir com klipper por API",
+			"nl": "Adapter voor interactie met klipper via API",
+			"fr": "Adaptateur pour interagir avec klipper par API",
+			"it": "Adattatore per interagire con klipper tramite API",
+			"es": "Adaptador para interactuar con klipper por API",
+			"pl": "Adapter do interakcji z klipper przez API",
+			"zh-cn": "通过API与Klipper交互的适配器"
+		},
+		"authors": [
+			"DutchmanNL <rdrozda@hotmail.com>"
+		],
+		"keywords": [
+			"klipper",
+			"printing",
+			"3d"
+		],
+		"license": "MIT",
+		"platform": "Javascript/Node.js",
+		"main": "main.js",
+		"icon": "klipper-moonraker.png",
+		"enabled": true,
+		"extIcon": "https://raw.githubusercontent.com/iobroker-community-adapters/ioBroker.klipper-moonraker/master/admin/klipper-moonraker.png",
+		"readme": "https://github.com/iobroker-community-adapters/ioBroker.klipper-moonraker/blob/master/README.md",
+		"loglevel": "info",
+		"mode": "daemon",
+		"type": "hardware",
+		"compact": true,
+		"connectionType": "local",
+		"dataSource": "poll",
+		"materialize": true,
+		"dependencies": [
+			{
+				"js-controller": ">=2.0.0"
+			}
+		]
+	},
+	"native": {
+		"customName": "My 3D printer",
+		"klipperPort": "80",
+		"klipperIP": "192.168.1.50",
+		"apiRefreshInterval": 60,
+		"apiRefreshIntervalOperational": 30,
+		"apiRefreshIntervalPrinting": 10
+	},
+	"objects": [],
+	"instanceObjects": [
+		{
+			"_id": "info",
+			"type": "channel",
+			"common": {
+				"name": "Information"
+			},
+			"native": {}
+		},
+		{
+			"_id": "info.connection",
+			"type": "state",
+			"common": {
+				"role": "indicator.connected",
+				"name": "Device or service connected",
+				"type": "boolean",
+				"read": true,
+				"write": false,
+				"def": false
+			},
+			"native": {}
+		}
+	]
+}
