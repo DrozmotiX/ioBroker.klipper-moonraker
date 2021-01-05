@@ -18,6 +18,11 @@ Adapter to interact with klipper by API
     
 ## Changelog
 
+### __WORK IN PROGRESS__
+* (DutchmanNL) Implement control commands
+* (DutchmanNL) Proper error handling for API calls
+* (DutchmanNL) update state attributes for control commands
+
 ### 0.0.1
 * (DutchmanNL) initial release
 

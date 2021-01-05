@@ -10,16 +10,12 @@ const utils = require('@iobroker/adapter-core');
 const {default: axios} = require('axios'); // Lib to handle http requests
 const stateAttr = require('./lib/stateAttr.js'); // Load attribute library
 
-//const WebSocketClient = require('websocket').client;
-// const client = new WebSocketClient();
 
 let polling = null; // Polling timer
-let scan_timer = null; // reload = false;
-let timeout = null; // Refresh delay for send state
+// let scan_timer = null; // reload = false;
+// let timeout = null; // Refresh delay for send state
 const stateExpire = {}, warnMessages = {}; // Timers to reset online state of device
 const disableSentry = false; // Ensure to set to true during development !
-
-
 
 
 class KlipperMoonraker extends utils.Adapter {
@@ -32,11 +28,11 @@ class KlipperMoonraker extends utils.Adapter {
 			...options,
 			name: 'klipper-moonraker',
 		});
+
 		this.on('ready', this.onReady.bind(this));
 		this.on('stateChange', this.onStateChange.bind(this));
-		// this.on('objectChange', this.onObjectChange.bind(this));
-		// this.on('message', this.onMessage.bind(this));
 		this.on('unload', this.onUnload.bind(this));
+
 		// Array for created states
 		this.createdStatesDetails = {};
 	}
@@ -57,19 +53,59 @@ class KlipperMoonraker extends utils.Adapter {
 		// get basic info
 		try {
 			// Load data from Klipper API
+			let apiError =  null;
 			const printStats = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/objects/query?webhooks&virtual_sdcard&print_stats`);
 			const printerInfo = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/info`);
+			const serverInfo = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/server/info`);
+			// const endstops = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/query_endstops/status`);
+			// const printerObjectList = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/objects/list`);
+
 			this.log.debug(JSON.stringify(`PrinterStats : ${JSON.stringify((printStats))}`));
 			this.log.debug(JSON.stringify(`PrinterInfo : ${JSON.stringify(printerInfo)}`));
+			this.log.debug(JSON.stringify(`ServerInfo : ${JSON.stringify(serverInfo)}`));
+			// this.log.debug(JSON.stringify(`ServerInfo : ${JSON.stringify(endstops)}`));
+			// this.log.debug(JSON.stringify(`PrinterInfo : ${JSON.stringify(printerObjectList)}`));
+
 			// Create states for received data
-			await this.readData(`info`, printerInfo.result);
-			await this.readData(`stats`, printStats.result);
+			if (printerInfo && printerInfo.result) {
+				await this.readData(printerInfo.result);
+			} else {
+				apiError =  true;
+				this.log.error(`Cannot get data for printerInfo`);
+			}
+			if (printStats && printStats.result) {
+				await this.readData(printStats.result);
+			} else {
+				apiError = true;
+				this.log.error(`Cannot get data for printStats`);
+			}
+			if (serverInfo && serverInfo.result) {
+				await this.readData(serverInfo.result);
+			} else {
+				apiError =  true;
+				this.log.error(`Cannot get data for serverInfo`);
+			}
+			// await this.readData(endstops.result);
+			// await this.readData(printerObjectList.result);
 
 			// Set connection state to true
-			this.setState('info.connection', true, true);
-		}
-		catch (e) {
-			this.log.error(e);
+			if (!apiError === true){
+				this.setState('info.connection', true, true);
+			}
+			// Create additional states not included in JSON-API of klipper-mooonraker but available as SET command
+			await this.create_state('emergencyStop', 'Emergency Stop');
+			await this.create_state('printCancel', 'Cancel current printing');
+			await this.create_state('printPause', 'Pause current printing');
+			await this.create_state('printResume', 'Resume current printing');
+			await this.create_state('restartFirmware', 'Restart Firmware');
+			await this.create_state('restartHost', 'Restart Host');
+			await this.create_state('restartServer', 'Restart Server');
+			await this.create_state('systemReboot', 'Reboot the system');
+			await this.create_state('systemShutdown', 'Shutdown the system');
+			//ToDo: Unclear how to handle this state
+			// await this.create_state('runGCODE', 'Run gcode', false);
+		} catch (e) {
+			this.log.error(`Issue in data-polling ${e}`);
 			// Set connection state to false
 			this.setState('info.connection', false, true);
 		}
@@ -85,36 +121,29 @@ class KlipperMoonraker extends utils.Adapter {
 
 	}
 
-	async readData(channel, data){
-
-		await this.setObjectNotExistsAsync(channel, {
-			type: 'channel',
-			common: {
-				name: channel,
-			},
-			native: {},
-		});
-
-		for (const state in data){
-			if (typeof data[state]!== 'object') {
+	async readData(data) {
+		for (const state in data) {
+			if (typeof data[state] !== 'object') {
 				this.log.debug(`type : ${typeof data[state]} | name : ${state} | value : ${data[state]}`);
-				await this.create_state(`${channel}.${state}`, state, data[state]);
+				await this.create_state(`${state}`, state, data[state]);
 			} else {
-				for (const state2 in data[state]){
-
-					if (typeof data[state][state2]!== 'object') {
-						this.log.debug(`type : ${typeof data[state][state2]} | name : ${state2} | value : ${data[state][state2]}`);
-						await this.create_state(`${channel}.${state2}`, state2, data[state][state2]);
-					} else {
-						for (const state3 in data[state][state2]) {
-							this.log.debug(`type : ${typeof data[state][state2][state3]} | name : ${state3} | value : ${data[state][state2][state3]}`);
-							await this.create_state(`${channel}.${state3}`, state3, data[state][state2][state3]);
+				if (state == 'plugins') {
+					await this.create_state(`${state}`, state, data[state]);
+				} else {
+					for (const state2 in data[state]) {
+						if (typeof data[state][state2] !== 'object') {
+							this.log.debug(`type : ${typeof data[state][state2]} | name : ${state2} | value : ${data[state][state2]}`);
+							await this.create_state(`${state2}`, state2, data[state][state2]);
+						} else {
+							for (const state3 in data[state][state2]) {
+								this.log.debug(`type : ${typeof data[state][state2][state3]} | name : ${state3} | value : ${data[state][state2][state3]}`);
+								await this.create_state(`${state3}`, state3, data[state][state2][state3]);
+							}
 						}
 					}
 				}
 			}
 		}
-
 	}
 
 	async getAPI(url) {
@@ -129,10 +158,39 @@ class KlipperMoonraker extends utils.Adapter {
 	}
 
 	/**
+	 * Function to send HTTP post command
+	 * @param {string} [url]- URL to handle post call, IP and port is take from adapter settings
+	 */
+	async postAPI(url) {
+		this.log.debug(`Post API called for :  ${url}`);
+		try {
+			if (!url) return;
+			url = `http://${this.config.klipperIP}:${this.config.klipperPort}${url}`;
+			const result = axios.post(url)
+				.then((response) => {
+					this.log.debug(`Sending command to Klippy API : ${url}`);
+					return response.data;
+				})
+				.catch((error) => {
+					this.log.debug('Sending command to Klippy API : ' + url + ' failed with error ' + error);
+					return error;
+				});
+			return result;
+		} catch (error) {
+			this.log.error(`Issue in postAPI ${error}`);
+		}
+	}
+
+	/**
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
 	 */
 	onUnload(callback) {
 		try {
+			// Cancel timer if running
+			if (polling) {
+				clearTimeout(polling);
+				polling = null;
+			}
 			callback();
 		} catch (e) {
 			this.log.error(e);
@@ -140,59 +198,63 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 	}
 
-	// If you need to react to object changes, uncomment the following block and the corresponding line in the constructor.
-	// You also need to subscribe to the objects with `this.subscribeObjects`, similar to `this.subscribeStates`.
-	// /**
-	//  * Is called if a subscribed object changes
-	//  * @param {string} id
-	//  * @param {ioBroker.Object | null | undefined} obj
-	//  */
-	// onObjectChange(id, obj) {
-	// 	if (obj) {
-	// 		// The object was changed
-	// 		this.log.info(`object ${id} changed: ${JSON.stringify(obj)}`);
-	// 	} else {
-	// 		// The object was deleted
-	// 		this.log.info(`object ${id} deleted`);
-	// 	}
-	// }
-
 	/**
 	 * Is called if a subscribed state changes
 	 * @param {string} id
 	 * @param {ioBroker.State | null | undefined} state
 	 */
-	onStateChange(id, state) {
-		if (state) {
-			// The state was changed
-			this.log.info(`state ${id} changed: ${state.val} (ack = ${state.ack})`);
-		} else {
-			// The state was deleted
-			this.log.info(`state ${id} deleted`);
+	async onStateChange(id, state) {
+		//Only execute when ACK = false
+		if (state && !state.ack) {
+
+			// Split state name in segments to be used later
+			const deviceId = id.split('.');
+			// If state us related to control commands, customiza API post call
+			if (deviceId[2] == 'control') {
+				this.log.debug(`Control command received ${deviceId[3]}`);
+				let apiResult = null;
+				switch (deviceId[3]) {
+					case 'emergencyStop':
+						apiResult = await this.postAPI(`/printer/emergency_stop`);
+						break;
+					case 'printCancel':
+						apiResult = await this.postAPI(`/printer/print/cancel`);
+						break;
+					case 'printPause':
+						apiResult = await this.postAPI(`/printer/print/pause`);
+						break;
+					case 'printResume':
+						apiResult = await this.postAPI(`/printer/print/resume`);
+						break;
+					case 'restartFirmware':
+						apiResult = await this.postAPI(`/printer/firmware_restart`);
+						break;
+					case 'restartHost':
+						apiResult = await this.postAPI(`/printer/restart`);
+						break;
+					case 'restartServer':
+						apiResult = await this.postAPI(`/server/restart`);
+						break;
+					case 'systemReboot':
+						apiResult = await this.postAPI(`/machine/reboot`);
+						break;
+					case 'systemShutdown':
+						apiResult = await this.postAPI(`/machine/shutdown`);
+						break;
+				}
+				if (apiResult) {
+					if (apiResult.result == 'ok') {
+						this.log.info(`Command "${deviceId[3]}" send successfully`);
+					} else {
+						this.log.error(`Sending command "${deviceId[3]}" failed, error  : ${JSON.stringify(apiResult.message)}`);
+					}
+				}
+			}
 		}
 	}
 
-	// If you need to accept messages in your adapter, uncomment the following block and the corresponding line in the constructor.
-	// /**
-	//  * Some message was sent to this instance over message box. Used by email, pushover, text2speech, ...
-	//  * Using this method requires "common.messagebox" property to be set to true in io-package.json
-	//  * @param {ioBroker.Message} obj
-	//  */
-	// onMessage(obj) {
-	// 	if (typeof obj === 'object' && obj.message) {
-	// 		if (obj.command === 'send') {
-	// 			// e.g. send email or pushover or whatever
-	// 			this.log.info('send command');
-
-	// 			// Send response in callback if required
-	// 			if (obj.callback) this.sendTo(obj.from, obj.command, 'Message received', obj.callback);
-	// 		}
-	// 	}
-	// }
-
 	async create_state(stateName, name, value) {
 		this.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
-
 		try {
 
 			// Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
@@ -205,9 +267,20 @@ class KlipperMoonraker extends utils.Adapter {
 					this.sendSentry(warnMessage);
 				}
 			}
-
+			let createStateName = stateName;
+			const channel = stateAttr[name] !== undefined ? stateAttr[name].root || '' : '';
+			if (channel !== '') {
+				await this.setObjectNotExistsAsync(channel, {
+					type: 'channel',
+					common: {
+						name: stateAttr[name] !== undefined ? stateAttr[name].rootName || '' : '',
+					},
+					native: {},
+				});
+				createStateName = `${channel}.${stateName}`;
+			}
 			common.name = stateAttr[name] !== undefined ? stateAttr[name].name || name : name;
-			common.type = typeof (value);
+			common.type = stateAttr[name] !== undefined ? stateAttr[name].type || typeof (value) : typeof (value);
 			common.role = stateAttr[name] !== undefined ? stateAttr[name].role || 'state' : 'state';
 			common.read = true;
 			common.unit = stateAttr[name] !== undefined ? stateAttr[name].unit || '' : '';
@@ -228,7 +301,7 @@ class KlipperMoonraker extends utils.Adapter {
 
 				// console.log(`An attribute has changed : ${state}`);
 
-				await this.extendObjectAsync(stateName, {
+				await this.extendObjectAsync(createStateName, {
 					type: 'state',
 					common
 				});
@@ -242,24 +315,24 @@ class KlipperMoonraker extends utils.Adapter {
 
 			// Set value to state including expiration time
 			if (value !== null || value !== undefined) {
-				await this.setState(stateName, {
+				await this.setState(createStateName, {
 					val: value,
 					ack: true,
 				});
 			}
 
 			// Timer  to set online state to  FALSE when not updated during  2 time-sync intervals
-			if (name === 'online') {
+			if (name === 'klippy connected') {
 				// Clear running timer
 				if (stateExpire[stateName]) {
-					clearTimeout(stateExpire[stateName]);
+					clearTimeout(stateExpire[createStateName]);
 					stateExpire[stateName] = null;
 				}
 
 				// timer
 				stateExpire[stateName] = setTimeout(async () => {
 					// Set value to state including expiration time
-					await this.setState(stateName, {
+					await this.setState(createStateName, {
 						val: false,
 						ack: true,
 					});
@@ -269,7 +342,7 @@ class KlipperMoonraker extends utils.Adapter {
 			}
 
 			// Subscribe on state changes if writable
-			common.write && this.subscribeStates(stateName);
+			common.write && this.subscribeStates(createStateName);
 
 		} catch (error) {
 			this.log.error('Create state error = ' + error);
@@ -286,15 +359,13 @@ class KlipperMoonraker extends utils.Adapter {
 					sentryInstance.getSentryObject().captureException(msg);
 				}
 			}
-		}else {
+		} else {
 			this.log.error(`Sentry disabled, error catched : ${msg}`);
 			console.error(`Sentry disabled, error catched : ${msg}`);
 		}
 	}
 
 }
-
-
 
 // @ts-ignore parent is a valid property on module
 if (module.parent) {
