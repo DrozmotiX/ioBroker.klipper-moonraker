@@ -18,7 +18,7 @@ Adapter to interact with klipper by API
     
 ## Changelog
 
-### __WORK IN PROGRESS__
+### 0.0.2 (2021-01-05)
 * (DutchmanNL) Implement control commands
 * (DutchmanNL) Proper error handling for API calls
 * (DutchmanNL) update state attributes for control commands
