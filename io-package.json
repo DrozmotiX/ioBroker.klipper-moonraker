@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "klipper-moonraker",
-        "version": "0.0.2",
+        "version": "0.0.3",
         "news": {
+            "0.0.3": {
+                "en": "Switch from data-polling to live socket events :-)\nEnsure all states and objects available are created\nreconnect if connection closes (retry after 10 sec, ToDo : make adjustable)",
+                "de": "Wechseln Sie von Datenabfragen zu Live-Socket-Ereignissen :-)\nStellen Sie sicher, dass alle verfügbaren Status und Objekte erstellt wurden\nStellen Sie die Verbindung wieder her, wenn die Verbindung geschlossen wird (versuchen Sie es nach 10 Sekunden erneut. ToDo: Einstellbar machen)",
+                "ru": "Переключитесь с опроса данных на живые события сокета :-)\nУбедитесь, что созданы все доступные состояния и объекты.\nповторно подключиться, если соединение закрывается (повторить попытку через 10 секунд, ToDo: сделать настраиваемым)",
+                "pt": "Mudar de pesquisa de dados para eventos de soquete ao vivo :-)\nCertifique-se de que todos os estados e objetos disponíveis sejam criados\nreconecte se a conexão for fechada (tente novamente após 10 segundos, ToDo: tornar ajustável)",
+                "nl": "Overschakelen van datapolling naar live socket-evenementen :-)\nZorg ervoor dat alle beschikbare staten en objecten zijn gemaakt\nmaak opnieuw verbinding als de verbinding wordt verbroken (probeer het opnieuw na 10 seconden, ToDo: aanpasbaar maken)",
+                "fr": "Passer de l'interrogation de données aux événements de socket en direct :-)\nAssurez-vous que tous les états et objets disponibles sont créés\nse reconnecter si la connexion se ferme (réessayer après 10 sec, ToDo: rendre réglable)",
+                "it": "Passa dal polling dei dati agli eventi live socket :-)\nAssicurarsi che tutti gli stati e gli oggetti disponibili siano stati creati\nriconnettersi se la connessione si chiude (riprovare dopo 10 sec, ToDo: rendere regolabile)",
+                "es": "Cambie del sondeo de datos a eventos de socket en vivo :-)\nAsegúrese de que se creen todos los estados y objetos disponibles\nvuelva a conectar si la conexión se cierra (vuelva a intentarlo después de 10 segundos, Tareas pendientes: hacer ajustable)",
+                "pl": "Przełącz się z odpytywania danych na zdarzenia dotyczące gniazd na żywo :-)\nUpewnij się, że zostały utworzone wszystkie dostępne stany i obiekty\npołącz ponownie, jeśli połączenie zostanie zamknięte (spróbuj ponownie po 10 sekundach, Do zrobienia: ustaw)",
+                "zh-cn": "从数据轮询切换到实时套接字事件：-)\n确保创建了所有可用状态和对象\n如果连接关闭则重新连接（10秒钟后重试，待办事项：可调）"
+            },
             "0.0.2": {
                 "en": "Implement control commands\nProper error handling for API calls\nupdate state attributes for control commands",
                 "de": "Implementieren Sie Steuerbefehle\nRichtige Fehlerbehandlung für API-Aufrufe\nStatusattribute für Steuerbefehle aktualisieren",

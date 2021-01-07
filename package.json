@@ -1,6 +1,6 @@
 {
   "name": "iobroker.klipper-moonraker",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Adapter to interact with klipper by API",
   "author": {
     "name": "DutchmanNL",
