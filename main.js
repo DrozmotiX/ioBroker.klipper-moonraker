@@ -9,11 +9,10 @@
 const utils = require('@iobroker/adapter-core');
 const {default: axios} = require('axios'); // Lib to handle http requests
 const stateAttr = require('./lib/stateAttr.js'); // Load attribute library
-
-
-let polling = null; // Polling timer
-// let scan_timer = null; // reload = false;
-// let timeout = null; // Refresh delay for send state
+const WebSocket = require('ws');
+let ws = null; //Global variable reserved for socket connection
+let reconnectTimer = null; // Polling timer
+let connectionState = null;
 const stateExpire = {}, warnMessages = {}; // Timers to reset online state of device
 const disableSentry = false; // Ensure to set to true during development !
 
@@ -34,7 +33,9 @@ class KlipperMoonraker extends utils.Adapter {
 		this.on('unload', this.onUnload.bind(this));
 
 		// Array for created states
-		this.createdStatesDetails = {};
+		this.createdStatesDetails = {}; //  Array to store state objects to avoid unneeded object changes
+		this.availableMethods = {}; // Store all available methods to handle data calls
+		this.subscribeMethods = {}; // List of config definitions for subscription of events
 	}
 
 	/**
@@ -45,122 +46,171 @@ class KlipperMoonraker extends utils.Adapter {
 		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
 		//start polling
-		await this.polling_timer();
-	}
+		// await this.polling_timer();
+		await this.handleWebSocket();
 
-	async polling_timer() {
-
-		// get basic info
-		try {
-			// Load data from Klipper API
-			let apiError =  null;
-			const printStats = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/objects/query?webhooks&virtual_sdcard&print_stats`);
-			const printerInfo = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/info`);
-			const serverInfo = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/server/info`);
-			// const endstops = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/query_endstops/status`);
-			// const printerObjectList = await this.getAPI(`http://${this.config.klipperIP}:${this.config.klipperPort}/printer/objects/list`);
-
-			this.log.debug(JSON.stringify(`PrinterStats : ${JSON.stringify((printStats))}`));
-			this.log.debug(JSON.stringify(`PrinterInfo : ${JSON.stringify(printerInfo)}`));
-			this.log.debug(JSON.stringify(`ServerInfo : ${JSON.stringify(serverInfo)}`));
-			// this.log.debug(JSON.stringify(`ServerInfo : ${JSON.stringify(endstops)}`));
-			// this.log.debug(JSON.stringify(`PrinterInfo : ${JSON.stringify(printerObjectList)}`));
-
-			// Create states for received data
-			if (printerInfo && printerInfo.result) {
-				await this.readData(printerInfo.result);
-			} else {
-				apiError =  true;
-				this.log.error(`Cannot get data for printerInfo`);
-			}
-			if (printStats && printStats.result) {
-				await this.readData(printStats.result);
-			} else {
-				apiError = true;
-				this.log.error(`Cannot get data for printStats`);
-			}
-			if (serverInfo && serverInfo.result) {
-				await this.readData(serverInfo.result);
-			} else {
-				apiError =  true;
-				this.log.error(`Cannot get data for serverInfo`);
-			}
-			// await this.readData(endstops.result);
-			// await this.readData(printerObjectList.result);
-
-			// Set connection state to true
-			if (!apiError === true){
-				this.setState('info.connection', true, true);
-			}
-			// Create additional states not included in JSON-API of klipper-mooonraker but available as SET command
-			await this.create_state('emergencyStop', 'Emergency Stop');
-			await this.create_state('printCancel', 'Cancel current printing');
-			await this.create_state('printPause', 'Pause current printing');
-			await this.create_state('printResume', 'Resume current printing');
-			await this.create_state('restartFirmware', 'Restart Firmware');
-			await this.create_state('restartHost', 'Restart Host');
-			await this.create_state('restartServer', 'Restart Server');
-			await this.create_state('systemReboot', 'Reboot the system');
-			await this.create_state('systemShutdown', 'Shutdown the system');
-			//ToDo: Unclear how to handle this state
-			// await this.create_state('runGCODE', 'Run gcode', false);
-		} catch (e) {
-			this.log.error(`Issue in data-polling ${e}`);
-			// Set connection state to false
-			this.setState('info.connection', false, true);
-		}
-
-		// start polling interval
-		if (polling) {
-			clearTimeout(polling);
-			polling = null;
-		}
-		polling = setTimeout(() => {
-			this.polling_timer();
-		}, (this.config.apiRefreshInterval * 1000));
-
-	}
-
-	async readData(data) {
-		for (const state in data) {
-			if (typeof data[state] !== 'object') {
-				this.log.debug(`type : ${typeof data[state]} | name : ${state} | value : ${data[state]}`);
-				await this.create_state(`${state}`, state, data[state]);
-			} else {
-				if (state == 'plugins') {
-					await this.create_state(`${state}`, state, data[state]);
-				} else {
-					for (const state2 in data[state]) {
-						if (typeof data[state][state2] !== 'object') {
-							this.log.debug(`type : ${typeof data[state][state2]} | name : ${state2} | value : ${data[state][state2]}`);
-							await this.create_state(`${state2}`, state2, data[state][state2]);
-						} else {
-							for (const state3 in data[state][state2]) {
-								this.log.debug(`type : ${typeof data[state][state2][state3]} | name : ${state3} | value : ${data[state][state2][state3]}`);
-								await this.create_state(`${state3}`, state3, data[state][state2][state3]);
-							}
-						}
-					}
-				}
-			}
-		}
-	}
-
-	async getAPI(url) {
-		this.log.debug('GET API called for : ' + url);
-		try {
-			const response = await axios.get(url, {timeout: 3000}); // Timout of 3 seconds for API call
-			this.log.debug(JSON.stringify('API response data : ' + response.data));
-			return response.data;
-		} catch (error) {
-			this.log.debug(`Error in API call : ${error}`);
-		}
 	}
 
 	/**
-	 * Function to send HTTP post command
-	 * @param {string} [url]- URL to handle post call, IP and port is take from adapter settings
+	 * Handle all websocket related data interaction
 	 */
+	async handleWebSocket() {
+
+		// Open socket connection
+		ws = new WebSocket(`ws://${this.config.klipperIP}:${this.config.klipperPort}/websocket`);
+
+		// Connection successfully open, handle routine to initiates all objects and states
+		ws.on('open', () => {
+			console.log(`Connection Established`);
+			this.log.info(`Successfully connected to${this.config.klipperIP}:${this.config.klipperPort}`);
+			this.setState('info.connection', true, true);
+			connectionState = true;
+
+			// Get printer basic information
+			ws.send(JSON.stringify({
+				jsonrpc: '2.0',
+				method: 'printer.info',
+				id: 'printer.info'
+			}));
+
+			// Call update for all methods
+			this.getAvailableMethods();
+		});
+
+		// Handle messages received from socket connection
+		ws.on('message', async (data) => {
+
+			function errorOutput(data) {
+				console.warn(`Unexpected message received ${JSON.stringify(data)}`);
+			}
+
+			// console.log(data);
+			// this.log.info(data);
+			const rpc_data = JSON.parse(data);
+
+			// Handle error message and retur function
+			if (rpc_data.error) {
+				console.error(`${JSON.stringify(rpc_data.error.message)}`);
+				this.log.error(`${JSON.stringify(rpc_data.error.message)}`);
+				return;
+			}
+
+			//Handle state_message Data
+			if (rpc_data.id) {
+
+				if (rpc_data.id == `printer.info`) {
+					// await this.readData(rpc_data.result, `_info`);
+					this.TraverseJson(rpc_data.result, null, false, false);
+
+					// Create additional states not included in JSON-API of klipper-mooonraker but available as SET command
+					await this.create_state('control.emergencyStop', 'Emergency Stop', false);
+					await this.create_state('control.printCancel', 'Cancel current printing', false);
+					await this.create_state('control.printPause', 'Pause current printing', false);
+					await this.create_state('control.printResume', 'Resume current printing', false);
+					await this.create_state('control.restartFirmware', 'Restart Firmware', false);
+					await this.create_state('control.restartHost', 'Restart Host', false);
+					await this.create_state('control.restartServer', 'Restart Server', false);
+					await this.create_state('control.systemReboot', 'Reboot the system', false);
+					await this.create_state('control.systemShutdown', 'Shutdown the system', false);
+
+				} else if (rpc_data.id == `printer.objects.status`) {
+					this.TraverseJson(rpc_data.result.status, null, false, false);
+
+				} else if (rpc_data.id == `printer.objects.list`) {
+
+					// Ensure array is empty
+					this.availableMethods.objects = {};
+
+					// Create array with possible object/states subscriptions
+					for (const method in rpc_data.result.objects) {
+						this.availableMethods.objects[rpc_data.result.objects[method]] = null;
+					}
+					console.log(`All available methods : ${JSON.stringify(this.availableMethods.objects)}`);
+
+					// Request state data for all available methods
+					ws.send(JSON.stringify({
+						jsonrpc: '2.0',
+						method: 'printer.objects.query',
+						params: {
+							objects: this.availableMethods.objects
+						},
+						id: 'printer.objects.status',
+					}));
+
+					// Request status updates of all methods
+					this.subscribeMethods = this.availableMethods;
+
+					// Subscribe to all states including proper configuration
+					ws.send(JSON.stringify({
+						jsonrpc: '2.0',
+						method: 'printer.objects.subscribe',
+						params: {
+							objects: this.subscribeMethods.objects
+						},
+						id: 'printer.objects.subscribe'
+					}));
+
+				} else {
+					errorOutput(rpc_data);
+				}
+
+			} else if (rpc_data.method && rpc_data.method == 'notify_status_update' && rpc_data.params) {
+				console.log(`Status update data received ${JSON.stringify(rpc_data)}`);
+				for (const methods in rpc_data.params) {
+					this.log.debug(`Status update data received ${JSON.stringify(rpc_data)}`);
+					this.TraverseJson(rpc_data.params[methods], null, false, false);
+				}
+			} else {
+				errorOutput(rpc_data);
+			}
+
+		});
+
+		// Handle closure of socket connection, try to connect again in 10seconds (if adapter enabled)
+		ws.on('close', () => {
+			console.log(`Connection closed`);
+			this.log.info(`Connection closed`);
+			this.setState('info.connection', false, true);
+			connectionState = false;
+
+			// Try to reconnect if connections is closed after 10 seconds
+			if (reconnectTimer) {
+				clearTimeout(reconnectTimer);
+				reconnectTimer = null;
+			}
+			reconnectTimer = setTimeout(() => {
+				console.log(`Trying to reconnect`);
+				this.log.info(`Trying to reconnect`);
+				this.handleWebSocket();
+			}, (10000));
+		});
+
+		// Handle errors on socket connection
+		ws.on('error', (error) => {
+			console.error(`Connection error : ${error}`);
+			this.log.error(`Connection error : ${error}`);
+			this.setState('info.connection', false, true);
+			connectionState = false;
+		});
+	}
+
+	/**
+	 * Query all available method endpoints, socket will reply with data which initialises all available states and objects
+	 */
+	getAvailableMethods() {
+		if (connectionState) {
+			// Printer Object list
+			ws.send(JSON.stringify({
+				jsonrpc: '2.0',
+				method: 'printer.objects.list',
+				id: 'printer.objects.list'
+			}));
+
+		} else {
+			console.error(`No active connection, cannot run 'getAvailableMethods'`);
+		}
+	}
+
 	async postAPI(url) {
 		this.log.debug(`Post API called for :  ${url}`);
 		try {
@@ -182,15 +232,83 @@ class KlipperMoonraker extends utils.Adapter {
 	}
 
 	/**
+	 * Traeverses the json-object and provides all information for creating/updating states
+	 * @param {object} o Json-object to be added as states
+	 * @param {string | null} parent Defines the parent object in the state tree
+	 * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel)
+	 * @param {boolean} replaceID Steers if ID from child should be used as ID for structure element (channel)
+	 */
+	async TraverseJson(o, parent = null, replaceName = false, replaceID = false) {
+		let id = null;
+		let value = null;
+		let name = null;
+
+		try {
+			for (const i in o) {
+				name = i;
+				if (!!o[i] && typeof (o[i]) == 'object' && o[i] == '[object Object]') {
+					if (parent == null) {
+						id = i;
+						if (replaceName) {
+							if (o[i].name) name = o[i].name;
+						}
+						if (replaceID) {
+							if (o[i].id) id = o[i].id;
+						}
+					} else {
+						id = parent + '.' + i;
+						if (replaceName) {
+							if (o[i].name) name = o[i].name;
+						}
+						if (replaceID) {
+							if (o[i].id) id = parent + '.' + o[i].id;
+						}
+					}
+					// Avoid channel creation for empty arrays/objects
+					if (Object.keys(o[i]).length !== 0) {
+						await this.setObjectAsync(id, {
+							'type': 'channel',
+							'common': {
+								'name': name,
+							},
+							'native': {},
+						});
+						this.TraverseJson(o[i], id, replaceName, replaceID);
+					} else {
+						console.log('State ' + id + ' received with empty array, ignore channel creation');
+						this.log.debug('State ' + id + ' received with empty array, ignore channel creation');
+					}
+				} else {
+					value = o[i];
+					if (parent == null) {
+						id = i;
+					} else {
+						id = parent + '.' + i;
+					}
+					if (typeof (o[i]) == 'object') value = JSON.stringify(value);
+					console.log('create id ' + id + ' with value ' + value + ' and name ' + name);
+					this.log.debug('create id ' + id + ' with value ' + value + ' and name ' + name);
+
+					this.create_state(id, name, value);
+				}
+			}
+		} catch (error) {
+			this.log.error(`Error in function TraverseJson: ${error}`);
+		}
+	}
+
+	/**
 	 * Is called when adapter shuts down - callback has to be called under any circumstances!
 	 */
 	onUnload(callback) {
 		try {
-			// Cancel timer if running
-			if (polling) {
-				clearTimeout(polling);
-				polling = null;
+			// Cancel reconnect timer if running
+			if (reconnectTimer) {
+				clearTimeout(reconnectTimer);
+				reconnectTimer = null;
 			}
+			// Close socket connection
+			ws.close();
 			callback();
 		} catch (e) {
 			this.log.error(e);
@@ -253,6 +371,11 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * @param {string} stateName ID of the state
+	 * @param {string} name Name of the state
+	 * @param {boolean | string | null} value Value of the state
+	 */
 	async create_state(stateName, name, value) {
 		this.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
 		try {
@@ -268,7 +391,10 @@ class KlipperMoonraker extends utils.Adapter {
 				}
 			}
 			let createStateName = stateName;
-			const channel = stateAttr[name] !== undefined ? stateAttr[name].root || '' : '';
+
+			//Todo: Disable stateAttr based channel creation
+			// const channel = stateAttr[name] !== undefined ? stateAttr[name].root || '' : '';
+			const channel = '';
 			if (channel !== '') {
 				await this.setObjectNotExistsAsync(channel, {
 					type: 'channel',
@@ -315,7 +441,7 @@ class KlipperMoonraker extends utils.Adapter {
 
 			// Set value to state including expiration time
 			if (value !== null || value !== undefined) {
-				await this.setState(createStateName, {
+				await this.setStateChanged(createStateName, {
 					val: value,
 					ack: true,
 				});
@@ -349,6 +475,10 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 	}
 
+	/**
+	 * Send error's to sentry, only if sentry not disabled
+	 * @param {string} msg ID of the state
+	 */
 	sendSentry(msg) {
 
 		if (!disableSentry) {

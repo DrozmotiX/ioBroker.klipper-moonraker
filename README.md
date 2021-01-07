@@ -18,6 +18,11 @@ Adapter to interact with klipper by API
     
 ## Changelog
 
+### __WORK IN PROGRESS__
+* (DutchmanNL) Switch from data-polling to live socket events :-)
+* (DutchmanNL) Ensure all states and objects available are created
+* (DutchmanNL) reconnect if connection closes (retry after 10 sec, ToDo : make adjustable)
+
 ### 0.0.2 (2021-01-05)
 * (DutchmanNL) Implement control commands
 * (DutchmanNL) Proper error handling for API calls
