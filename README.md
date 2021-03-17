@@ -5,12 +5,12 @@
 [![Downloads](https://img.shields.io/npm/dm/iobroker.klipper-moonraker.svg)](https://www.npmjs.com/package/iobroker.klipper-moonraker)
 ![Number of Installations (latest)](http://iobroker.live/badges/klipper-moonraker-installed.svg)
 ![Number of Installations (stable)](http://iobroker.live/badges/klipper-moonraker-stable.svg)
-[![Dependency Status](https://img.shields.io/david/iobroker-community-adapters/iobroker.klipper-moonraker.svg)](https://david-dm.org/iobroker-community-adapters/iobroker.klipper-moonraker)
-[![Known Vulnerabilities](https://snyk.io/test/github/iobroker-community-adapters/ioBroker.klipper-moonraker/badge.svg)](https://snyk.io/test/github/iobroker-community-adapters/ioBroker.klipper-moonraker)
+[![Dependency Status](https://img.shields.io/david/DrozmotiX/iobroker.klipper-moonraker.svg)](https://david-dm.org/DrozmotiX/iobroker.klipper-moonraker)
+[![Known Vulnerabilities](https://snyk.io/test/github/DrozmotiX/ioBroker.klipper-moonraker/badge.svg)](https://snyk.io/test/github/DrozmotiX/ioBroker.klipper-moonraker)
 
 [![NPM](https://nodei.co/npm/iobroker.klipper-moonraker.png?downloads=true)](https://nodei.co/npm/iobroker.klipper-moonraker/)
 
-**Tests:** ![Test and Release](https://github.com/iobroker-community-adapters/ioBroker.klipper-moonraker/workflows/Test%20and%20Release/badge.svg)
+**Tests:** ![Test and Release](https://github.com/DrozmotiX/ioBroker.klipper-moonraker/workflows/Test%20and%20Release/badge.svg)
 
 ## klipper-moonraker adapter for ioBroker
 
