@@ -24,6 +24,17 @@ https://github.com/th33xitus/kiauh
     
 ## Changelog
 
+<!--
+    Placeholder for the next version (at the beginning of the line):
+    ### __WORK IN PROGRESS__
+-->
+
+### 0.0.4 (2021-03-17)
+* (DutchmanNL) Implemented rounding of digits
+* (DutchmanNL) Transfer ownership to DrozmotiX
+* (DutchmanNL) Improve automerge for dependency updates
+* (Basti-RX) Update state attribute relations
+
 ### 0.0.3 (2021-01-07)
 * (DutchmanNL) Switch from data-polling to live socket events :-)
 * (DutchmanNL) Ensure all states and objects available are created

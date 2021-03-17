@@ -1,8 +1,20 @@
 {
     "common": {
         "name": "klipper-moonraker",
-        "version": "0.0.3",
+        "version": "0.0.4",
         "news": {
+            "0.0.4": {
+                "en": "Implemented rounding of digits\nTransfer ownership to DrozmotiX\nImprove automerge for dependency updates\nUpdate state attribute relations",
+                "de": "Rundung von Ziffern implementiert\nÜbertragen Sie das Eigentum an DrozmotiX\nVerbessern Sie Automerge für Abhängigkeitsaktualisierungen\nAktualisieren Sie die Statusattributbeziehungen",
+                "ru": "Реализовано округление цифр\nПередать право собственности DrozmotiX\nУлучшение автоматического слияния для обновлений зависимостей\nОбновить отношения атрибутов состояния",
+                "pt": "Arredondamento de dígitos implementado\nTransferir propriedade para DrozmotiX\nMelhore o automerge para atualizações de dependências\nAtualizar relações de atributo de estado",
+                "nl": "Afronding van cijfers geïmplementeerd\nDraag het eigendom over aan DrozmotiX\nVerbeter automerge voor afhankelijkheidsupdates\nUpdate statusattribuutrelaties",
+                "fr": "Arrondi des chiffres implémenté\nTransférer la propriété à DrozmotiX\nAméliorer la fusion automatique pour les mises à jour des dépendances\nMettre à jour les relations d'attributs d'état",
+                "it": "Arrotondamento delle cifre implementato\nTrasferisci la proprietà a DrozmotiX\nMigliora l'automerge per gli aggiornamenti delle dipendenze\nAggiorna le relazioni degli attributi di stato",
+                "es": "Redondeo de dígitos implementado\nTransferir la propiedad a DrozmotiX\nMejorar la automatización para las actualizaciones de dependencias\nActualizar relaciones de atributos de estado",
+                "pl": "Zaimplementowano zaokrąglanie cyfr\nPrzenieś własność na DrozmotiX\nPopraw automerge dla aktualizacji zależności\nZaktualizuj relacje atrybutów stanu",
+                "zh-cn": "实施数字舍入\n将所有权转让给DrozmotiX\n改进自动合并以更新依赖项\n更新状态属性关系"
+            },
             "0.0.3": {
                 "en": "Switch from data-polling to live socket events :-)\nEnsure all states and objects available are created\nreconnect if connection closes (retry after 10 sec, ToDo : make adjustable)",
                 "de": "Wechseln Sie von Datenabfragen zu Live-Socket-Ereignissen :-)\nStellen Sie sicher, dass alle verfügbaren Status und Objekte erstellt wurden\nStellen Sie die Verbindung wieder her, wenn die Verbindung geschlossen wird (versuchen Sie es nach 10 Sekunden erneut. ToDo: Einstellbar machen)",
