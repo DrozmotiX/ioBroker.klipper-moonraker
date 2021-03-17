@@ -14,7 +14,13 @@
 
 ## klipper-moonraker adapter for ioBroker
 
-Adapter to interact with klipper by API
+An IOBroker Adapter to interact with klipper by the Moonraker-API.
+
+The Testclient was created with Kiauh. Kiauh is a Script that help you creating a perfect environment for your Klipper Setup.
+
+Kiauh: 
+https://github.com/th33xitus/kiauh
+
     
 ## Changelog
 
