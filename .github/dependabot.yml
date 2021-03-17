@@ -1,12 +1,8 @@
 version: 2
 updates:
-- package-ecosystem: npm
+- package-ecosystem: "npm"
   directory: "/"
   schedule:
-    interval: monthly
-    time: "04:00"
-    timezone: Europe/Berlin
-  open-pull-requests-limit: 20
-  assignees:
-  - iobroker-community-adapters
-  versioning-strategy: increase
+    interval: "daily"
+  target-branch: "dependencyAutoUpdate"
+  open-pull-requests-limit: 30
