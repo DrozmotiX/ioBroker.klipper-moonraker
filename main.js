@@ -63,7 +63,7 @@ class KlipperMoonraker extends utils.Adapter {
 		ws.on('open', () => {
 			console.log(`Connection Established`);
 			this.log.info(`Successfully connected to${this.config.klipperIP}:${this.config.klipperPort}`);
-			this.setState('info.connection', true, true);
+					this.setState('info.connection', true, true);
 			connectionState = true;
 
 			// Get printer basic information
@@ -372,12 +372,71 @@ class KlipperMoonraker extends utils.Adapter {
 	}
 
 	/**
-	 * @param {string} stateName ID of the state
-	 * @param {string} name Name of the state
-	 * @param {boolean | string | null} value Value of the state
+	 * @param stateName {string} ID of the state
+	 * @param name {string} Name of state (also used for stattAttrlib!)
+	 * @param value {boolean | string | null} Value of the state
 	 */
 	async create_state(stateName, name, value) {
 		this.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
+
+		/**
+		 * Value rounding 1 digits
+		 * @param {number} [value] - Number to round with . separator
+		 *  @param {object} [adapter] - intance "this" object
+		 */
+		function rondOneDigit(value,  adapter) {
+			try {
+				let rounded = Number(value);
+				rounded = Math.round(rounded * 100) / 100;
+				adapter.log.debug(`roundCosts with ${value} rounded ${rounded}`);
+				if (!rounded) return value;
+				return rounded;
+			} catch (error) {
+				adapter.log.error(`[roundCosts ${value}`);
+				adapter.sendSentry(error);
+			}
+		}
+		/**
+		 * Value rounding 2 digits
+		 * @param {number} [value] - Number to round with , separator
+		 * @param {object} [adapter] - intance "this" object
+		 */
+		function roundTwoDigits(value, adapter) {
+			let rounded;
+			try {
+				rounded = Number(value);
+				rounded = Math.round(rounded * 1000) / 1000;
+				adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+				if (!rounded) return value;
+				return rounded;
+			} catch (error) {
+				adapter.log.error(`[roundDigits ${value}`);
+				adapter.sendSentry(error);
+				rounded = value;
+				return rounded;
+			}
+		}
+		/**
+		 * Value rounding 3 digits
+		 * @param {number} [value] - Number to round with , separator
+		 * @param {object} [adapter] - intance "this" object
+		 */
+		function roundThreeDigits(value, adapter) {
+			let rounded;
+			try {
+				rounded = Number(value);
+				rounded = Math.round(rounded * 1000) / 1000;
+				adapter.log.debug(`roundDigits with ${value} rounded ${rounded}`);
+				if (!rounded) return value;
+				return rounded;
+			} catch (error) {
+				adapter.log.error(`[roundDigits ${value}`);
+				adapter.sendSentry(error);
+				rounded = value;
+				return rounded;
+			}
+		}
+
 		try {
 
 			// Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
@@ -439,8 +498,24 @@ class KlipperMoonraker extends utils.Adapter {
 			// Store current object definition to memory
 			this.createdStatesDetails[stateName] = common;
 
+			// Check if value should be rounded, active switch
+			const roundingOneDigit = stateAttr[name] !== undefined ? stateAttr[name].round_1 || false : false;
+			const roundingTwoDigits = stateAttr[name] !== undefined ? stateAttr[name].round_2 || false : false;
+			const roundingThreeDigits = stateAttr[name] !== undefined ? stateAttr[name].round_3 || false : false;
+
 			// Set value to state including expiration time
-			if (value !== null || value !== undefined) {
+			if (value !== null && value !== undefined) {
+
+				// Check if value should be rounded, if yes execute
+				if (typeof value == 'number' || typeof value == 'string') {
+					if (roundingOneDigit) {
+						value = rondOneDigit(value, this);
+					} else if (roundingTwoDigits) {
+						value = roundTwoDigits(value, this);
+					} else if (roundingThreeDigits) {
+						value = roundThreeDigits(value, this);
+					}
+				}
 				await this.setStateChanged(createStateName, {
 					val: value,
 					ack: true,
