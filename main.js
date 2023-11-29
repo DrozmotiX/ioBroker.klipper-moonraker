@@ -63,7 +63,7 @@ class KlipperMoonraker extends utils.Adapter {
 		ws.on('open', () => {
 			console.log(`Connection Established`);
 			this.log.info(`Successfully connected to${this.config.klipperIP}:${this.config.klipperPort}`);
-					this.setState('info.connection', true, true);
+			this.setState('info.connection', true, true);
 			connectionState = true;
 
 			// Get printer basic information
@@ -71,6 +71,13 @@ class KlipperMoonraker extends utils.Adapter {
 				jsonrpc: '2.0',
 				method: 'printer.info',
 				id: 'printer.info'
+			}));
+
+			// Get active spool
+			ws.send(JSON.stringify({
+				"jsonrpc": "2.0",
+				"method": "server.spoolman.get_spool_id",
+				"id": 'printer.spoolID'
 			}));
 
 			// Call update for all methods
@@ -150,6 +157,9 @@ class KlipperMoonraker extends utils.Adapter {
 						id: 'printer.objects.subscribe'
 					}));
 
+				} else if (rpc_data.id === `printer.spoolID`) {
+					this.log.info(`PrinterSpool ID message: ${JSON.stringify(rpc_data)}`);
+					// await this.create_state('spoolID', 'Shutdown the system', false);
 				} else {
 					errorOutput(rpc_data);
 				}
