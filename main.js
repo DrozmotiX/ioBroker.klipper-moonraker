@@ -73,6 +73,13 @@ class KlipperMoonraker extends utils.Adapter {
 				id: 'printer.info'
 			}));
 
+			// Get active spool
+			ws.send(JSON.stringify({
+				"jsonrpc": "2.0",
+				"method": "server.spoolman.get_spool_id",
+				"id": 'printer.spoolID'
+			}));
+
 			// Call update for all methods
 			this.getAvailableMethods();
 		});
@@ -150,6 +157,9 @@ class KlipperMoonraker extends utils.Adapter {
 						id: 'printer.objects.subscribe'
 					}));
 
+				} else if (rpc_data.id === `printer.spoolID`) {
+					this.log.info(`PrinterSpool ID message: ${JSON.stringify(rpc_data)}`);
+					// await this.create_state('spoolID', 'Shutdown the system', false);
 				} else {
 					errorOutput(rpc_data);
 				}
