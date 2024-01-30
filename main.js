@@ -75,9 +75,9 @@ class KlipperMoonraker extends utils.Adapter {
 
 			// Get active spool
 			ws.send(JSON.stringify({
-				"jsonrpc": "2.0",
-				"method": "server.spoolman.get_spool_id",
-				"id": 'printer.spoolID'
+				'jsonrpc': '2.0',
+				'method': 'server.spoolman.get_spool_id',
+				'id': 'printer.spoolID'
 			}));
 
 			// Call update for all methods
@@ -110,6 +110,7 @@ class KlipperMoonraker extends utils.Adapter {
 					this.TraverseJson(rpc_data.result, null, false, false);
 
 					// Create additional states not included in JSON-API of klipper-mooonraker but available as SET command
+					await this.create_state('control.runGcode', 'Run G-code', '');
 					await this.create_state('control.emergencyStop', 'Emergency Stop', false);
 					await this.create_state('control.printCancel', 'Cancel current printing', false);
 					await this.create_state('control.printPause', 'Pause current printing', false);
@@ -333,50 +334,52 @@ class KlipperMoonraker extends utils.Adapter {
 	 */
 	async onStateChange(id, state) {
 		//Only execute when ACK = false
-		if (state && !state.ack) {
+		if (!state || state.ack) {
+			return;
+		}
 
-			// Split state name in segments to be used later
-			const deviceId = id.split('.');
-			// If state us related to control commands, customiza API post call
-			if (deviceId[2] == 'control') {
-				this.log.debug(`Control command received ${deviceId[3]}`);
-				let apiResult = null;
-				switch (deviceId[3]) {
-					case 'emergencyStop':
-						apiResult = await this.postAPI(`/printer/emergency_stop`);
-						break;
-					case 'printCancel':
-						apiResult = await this.postAPI(`/printer/print/cancel`);
-						break;
-					case 'printPause':
-						apiResult = await this.postAPI(`/printer/print/pause`);
-						break;
-					case 'printResume':
-						apiResult = await this.postAPI(`/printer/print/resume`);
-						break;
-					case 'restartFirmware':
-						apiResult = await this.postAPI(`/printer/firmware_restart`);
-						break;
-					case 'restartHost':
-						apiResult = await this.postAPI(`/printer/restart`);
-						break;
-					case 'restartServer':
-						apiResult = await this.postAPI(`/server/restart`);
-						break;
-					case 'systemReboot':
-						apiResult = await this.postAPI(`/machine/reboot`);
-						break;
-					case 'systemShutdown':
-						apiResult = await this.postAPI(`/machine/shutdown`);
-						break;
-				}
-				if (apiResult) {
-					if (apiResult.result == 'ok') {
-						this.log.info(`Command "${deviceId[3]}" send successfully`);
-					} else {
-						this.log.error(`Sending command "${deviceId[3]}" failed, error  : ${JSON.stringify(apiResult.message)}`);
-					}
-				}
+		// Split state name in segments to be used later
+		const deviceId = id.split('.');
+		// If state us related to control commands, customize API post call
+		this.log.debug(`Control command received ${deviceId[3]}`);
+		let apiResult = null;
+		switch (deviceId[3]) {
+			case 'emergencyStop':
+				apiResult = await this.postAPI(`/printer/emergency_stop`);
+				break;
+			case 'printCancel':
+				apiResult = await this.postAPI(`/printer/print/cancel`);
+				break;
+			case 'printPause':
+				apiResult = await this.postAPI(`/printer/print/pause`);
+				break;
+			case 'printResume':
+				apiResult = await this.postAPI(`/printer/print/resume`);
+				break;
+			case 'restartFirmware':
+				apiResult = await this.postAPI(`/printer/firmware_restart`);
+				break;
+			case 'restartHost':
+				apiResult = await this.postAPI(`/printer/restart`);
+				break;
+			case 'restartServer':
+				apiResult = await this.postAPI(`/server/restart`);
+				break;
+			case 'systemReboot':
+				apiResult = await this.postAPI(`/machine/reboot`);
+				break;
+			case 'systemShutdown':
+				apiResult = await this.postAPI(`/machine/shutdown`);
+				break;
+			case 'runGcode':
+				apiResult = await this.postAPI(`/printer/gcode/script?script=${state.val}`);
+				break;
+		}
+		if (apiResult) {
+			if (apiResult.result === 'ok') {
+				this.log.info(`Command "${deviceId[3]}" send successfully`);
+			} else {
+				this.log.error(`Sending command "${deviceId[3]}" failed, error  : ${JSON.stringify(apiResult.message)}`);
 			}
 		}
 	}
@@ -387,7 +390,7 @@ class KlipperMoonraker extends utils.Adapter {
 	 * @param value {boolean | string | null} Value of the state
 	 */
 	async create_state(stateName, name, value) {
-		this.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
+		this.log.debug(`Create_state called for : ${stateName} with value : ${value}`);
 
 		/**
 		 * Value rounding 1 digits
@@ -409,7 +412,7 @@ class KlipperMoonraker extends utils.Adapter {
 		/**
 		 * Value rounding 2 digits
 		 * @param {number} [value] - Number to round with , separator
-		 * @param {object} [adapter] - intance "this" object
+		 * @param {object} [adapter] - instance "this" object
 		 */
 		function roundTwoDigits(value, adapter) {
 			let rounded;
@@ -565,18 +568,17 @@ class KlipperMoonraker extends utils.Adapter {
 	 * @param {string} msg ID of the state
 	 */
 	sendSentry(msg) {
-
 		if (!disableSentry) {
-			this.log.info(`[Error catched and send to Sentry, thank you collaborating!] error: ${msg}`);
 			if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
 				const sentryInstance = this.getPluginInstance('sentry');
 				if (sentryInstance) {
+					this.log.info(`[Error caught and sent to Sentry, thank you for collaborating!] error: ${msg}`);
 					sentryInstance.getSentryObject().captureException(msg);
 				}
 			}
 		} else {
-			this.log.error(`Sentry disabled, error catched : ${msg}`);
-			console.error(`Sentry disabled, error catched : ${msg}`);
+			this.log.error(`Sentry disabled, error caught : ${msg}`);
+			console.error(`Sentry disabled, error caught : ${msg}`);
 		}
 	}
 
