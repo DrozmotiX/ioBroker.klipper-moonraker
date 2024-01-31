@@ -99,11 +99,24 @@
         "connectionType": "local",
         "dataSource": "poll",
         "materialize": true,
+        "adminUI": {
+            "config": "json"
+        },
         "dependencies": [
             {
-                "js-controller": ">=2.0.0"
+                "js-controller": ">=4.0.0"
             }
-        ]
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=6.0.0"
+            }
+        ],
+        "tier": 2,
+        "licenseInformation": {
+            "license": "MIT",
+            "type": "free"
+        }
     },
     "native": {
         "customName": "My 3D printer",
@@ -111,8 +124,19 @@
         "klipperIP": "192.168.1.50",
         "apiRefreshInterval": 60,
         "apiRefreshIntervalOperational": 30,
-        "apiRefreshIntervalPrinting": 10
+        "apiRefreshIntervalPrinting": 10,
+        "useSsl": false,
+        "auth": false,
+        "password": "",
+        "user": ""
     },
+    "protectedNative": [
+        "user",
+        "password"
+    ],
+    "encryptedNative": [
+        "password"
+    ],
     "objects": [],
     "instanceObjects": [
         {

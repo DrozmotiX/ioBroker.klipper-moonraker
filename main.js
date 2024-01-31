@@ -15,10 +15,10 @@ let reconnectTimer = null; // Polling timer
 let connectionState = null;
 const stateExpire = {}, warnMessages = {}; // Timers to reset online state of device
 const disableSentry = false; // Ensure to set to true during development !
+const https = require('node:https');
 
 
 class KlipperMoonraker extends utils.Adapter {
-
 	/**
 	 * @param {Partial<utils.AdapterOptions>} [options={}]
 	 */
@@ -32,32 +32,166 @@ class KlipperMoonraker extends utils.Adapter {
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 
-		// Array for created states
-		this.createdStatesDetails = {}; //  Array to store state objects to avoid unneeded object changes
-		this.availableMethods = {}; // Store all available methods to handle data calls
-		this.subscribeMethods = {}; // List of config definitions for subscription of events
+		/** Refresh token after X ms */
+		this.REFRESH_TOKEN_MS = 50 * 60 * 1_000;
+		/** Retry if login failed after X ms */
+		this.RETRY_LOGIN_MS = 90_000;
+		/** The one shot token for websocket auth */
+		this.oneShotToken = '';
+		/** The current token used for authentication */
+		this.token = '';
+		/** The current refresh token */
+		this.refreshToken = '';
+		/** Array to store state objects to avoid unneeded object changes */
+		this.createdStatesDetails = {};
+		/** Store all available methods to handle data calls */
+		this.availableMethods = {};
+		/** List of config definitions for subscription of events */
+		this.subscribeMethods = {};
+
+		this.axios = axios.create();
+	}
+
+	/**
+	 * Get the one shot token for authenticating websocket connection
+	 *
+	 * @return {Promise<void>}
+	 */
+	async getOneShotToken() {
+		try {
+			const res = await this.axios.get(`${this.getApiBaseUrl()}/access/oneshot_token`, {
+				headers: {
+					Authorization: `Bearer ${this.token}`
+				}
+			});
+
+			this.oneShotToken =  res.data.result;
+		} catch (e) {
+			throw new Error(`Could not retrieve one shot token: ${e.message}`);
+		}
+	}
+
+	/**
+	 * Perform login with credentials from config
+	 *
+	 * @return {Promise<void>}
+	 */
+	async login() {
+		this.log.info('Login into API');
+		try {
+			const res = await this.axios.post(`${this.getApiBaseUrl()}/access/login`,
+				{
+					'username': this.config.user,
+					'password': this.config.password,
+					'source': 'moonraker'
+				});
+
+			this.log.info(`Successfully logged in as ${res.data.result.username}`);
+			this.token = res.data.result.token;
+			this.refreshToken = res.data.result.refresh_token;
+		} catch (e) {
+			throw new Error(`Could not login: ${e.message}`);
+		}
+	}
+
+	/**
+	 * Configure axios according to the instance config
+	 */
+	configureAxios() {
+		if (!this.config.useSsl) {
+			return;
+		}
+
+		this.axios = axios.create({
+			httpsAgent: new https.Agent({
+				rejectUnauthorized: false
+			})
+		});
 	}
 
 	/**
 	 * Is called when databases are connected and adapter received configuration.
 	 */
 	async onReady() {
+		this.configureAxios();
+		return this.init();
+	}
+
+	/**
+	 * Refresh the access token
+	 *
+	 * @return {Promise<void>}
+	 */
+	async refreshAccessToken() {
+		try {
+			const res = await this.axios.post(`${this.getApiBaseUrl()}/access/refresh_jwt`, { refresh_token: this.refreshToken });
+
+			this.token = res.data.result.token;
+		} catch (e) {
+			throw new Error(`Could not refresh access token: ${e.message}`);
+		}
+	}
+
+	/**
+	 * Start the authorization procedure
+	 * Login, getting one shot token and refreshing regularly
+	 *
+	 * @return {Promise<void>}
+	 */
+	async startAuthorization() {
+		await this.login();
+		await this.getOneShotToken();
+
+		this.setInterval(() => {
+			this.log.info('Refresh access token');
+			try {
+				this.refreshAccessToken();
+				this.log.info('Access token successfully refreshed');
+			} catch (e) {
+				this.log.error(`Could not refresh access token: ${e.message}`);
+				// we need to login from scratch, restart instance to achieve this
+				this.log.error('Restarting instance');
+				this.restart();
+			}
+		}, this.REFRESH_TOKEN_MS);
+	}
+
+	/**
+	 * Executes the initial adapter logic
+	 *
+	 * @return {Promise<void>}
+	 */
+	async init() {
+		if (this.config.auth) {
+			try {
+				await this.startAuthorization();
+			} catch (e) {
+				this.log.error(e.message);
+
+				this.log.info(`Will try again in ${this.RETRY_LOGIN_MS / 1_000} seconds`);
+				this.setTimeout(() => this.init(), this.RETRY_LOGIN_MS);
+				return;
+			}
+		}
 
 		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
-		//start polling
-		// await this.polling_timer();
-		await this.handleWebSocket();
-
+		return this.handleWebSocket();
 	}
 
 	/**
 	 * Handle all websocket related data interaction
 	 */
 	async handleWebSocket() {
+		let wsUrl = `${this.config.useSsl ? 'wss': 'ws'}://${this.config.klipperIP}:${this.config.klipperPort}/websocket`;
+		if (this.config.auth) {
+			wsUrl += `?token=${this.oneShotToken}`;
+		}
 
 		// Open socket connection
-		ws = new WebSocket(`ws://${this.config.klipperIP}:${this.config.klipperPort}/websocket`);
+		ws = new WebSocket(wsUrl, {
+			rejectUnauthorized: !this.config.useSsl
+		});
 
 		// Connection successfully open, handle routine to initiates all objects and states
 		ws.on('open', () => {
@@ -75,9 +209,9 @@ class KlipperMoonraker extends utils.Adapter {
 
 			// Get active spool
 			ws.send(JSON.stringify({
-				"jsonrpc": "2.0",
-				"method": "server.spoolman.get_spool_id",
-				"id": 'printer.spoolID'
+				'jsonrpc': '2.0',
+				'method': 'server.spoolman.get_spool_id',
+				'id': 'printer.spoolID'
 			}));
 
 			// Call update for all methods
@@ -91,14 +225,12 @@ class KlipperMoonraker extends utils.Adapter {
 				console.warn(`Unexpected message received ${JSON.stringify(data)}`);
 			}
 
-			// console.log(data);
-			// this.log.info(data);
 			const rpc_data = JSON.parse(data);
 
-			// Handle error message and retur function
+			// Handle error message and return function
 			if (rpc_data.error) {
-				console.error(`${JSON.stringify(rpc_data.error.message)}`);
-				this.log.error(`${JSON.stringify(rpc_data.error.message)}`);
+				console.error(`Received error message for "${rpc_data.id}" over websocket: ${rpc_data.error.message}`);
+				this.log.error(`Received error message for "${rpc_data.id}" over websocket: ${rpc_data.error.message}`);
 				return;
 			}
 
@@ -110,6 +242,7 @@ class KlipperMoonraker extends utils.Adapter {
 					this.TraverseJson(rpc_data.result, null, false, false);
 
 					// Create additional states not included in JSON-API of klipper-mooonraker but available as SET command
+					await this.create_state('control.runGcode', 'Run G-code', '');
 					await this.create_state('control.emergencyStop', 'Emergency Stop', false);
 					await this.create_state('control.printCancel', 'Cancel current printing', false);
 					await this.create_state('control.printPause', 'Pause current printing', false);
@@ -191,8 +324,15 @@ class KlipperMoonraker extends utils.Adapter {
 			reconnectTimer = setTimeout(() => {
 				console.log(`Trying to reconnect`);
 				this.log.info(`Trying to reconnect`);
+				if (this.config.auth) {
+					try {
+						this.getOneShotToken();
+					} catch (e) {
+						this.log.error(e.message);
+					}
+				}
 				this.handleWebSocket();
-			}, (10000));
+			}, (10_000));
 		});
 
 		// Handle errors on socket connection
@@ -221,28 +361,43 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 	}
 
-	async postAPI(url) {
-		this.log.debug(`Post API called for :  ${url}`);
+	/**
+	 * Get the API base url based on the configuration
+	 *
+	 * @return {string}
+	 */
+	getApiBaseUrl() {
+		return `${this.config.useSsl ? 'https': 'http'}://${this.config.klipperIP}:${this.config.klipperPort}`;
+	}
+
+	async postAPI(endpoint) {
+		this.log.debug(`Post API called for: ${endpoint}`);
+		const headers = {};
+
+		if (this.config.auth) {
+			headers.Authorization = `Bearer ${this.token}`;
+		}
+
 		try {
-			if (!url) return;
-			url = `http://${this.config.klipperIP}:${this.config.klipperPort}${url}`;
-			const result = axios.post(url)
+			if (!endpoint) return;
+			endpoint = `${this.getApiBaseUrl()}${endpoint}`;
+			const result = this.axios.post(endpoint, null, {headers})
 				.then((response) => {
-					this.log.debug(`Sending command to Klippy API : ${url}`);
+					this.log.debug(`Sending command to Klippy API: ${endpoint}`);
 					return response.data;
 				})
 				.catch((error) => {
-					this.log.debug('Sending command to Klippy API : ' + url + ' failed with error ' + error);
+					this.log.debug(`Sending command to Klippy API: ${endpoint} failed with error ${error}`);
 					return error;
 				});
 			return result;
-		} catch (error) {
-			this.log.error(`Issue in postAPI ${error}`);
+		} catch (e) {
+			this.log.error(`Issue in postAPI: ${e.message}`);
 		}
 	}
 
 	/**
-	 * Traeverses the json-object and provides all information for creating/updating states
+	 * Traverses the json-object and provides all information for creating/updating states
 	 * @param {object} o Json-object to be added as states
 	 * @param {string | null} parent Defines the parent object in the state tree
 	 * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel)
@@ -318,7 +473,9 @@ class KlipperMoonraker extends utils.Adapter {
 				reconnectTimer = null;
 			}
 			// Close socket connection
-			ws.close();
+			if (ws) {
+				ws.close();
+			}
 			callback();
 		} catch (e) {
 			this.log.error(e);
@@ -333,50 +490,52 @@ class KlipperMoonraker extends utils.Adapter {
 	 */
 	async onStateChange(id, state) {
 		//Only execute when ACK = false
-		if (state && !state.ack) {
+		if (!state || state.ack) {
+			return;
+		}
 
-			// Split state name in segments to be used later
-			const deviceId = id.split('.');
-			// If state us related to control commands, customiza API post call
-			if (deviceId[2] == 'control') {
-				this.log.debug(`Control command received ${deviceId[3]}`);
-				let apiResult = null;
-				switch (deviceId[3]) {
-					case 'emergencyStop':
-						apiResult = await this.postAPI(`/printer/emergency_stop`);
-						break;
-					case 'printCancel':
-						apiResult = await this.postAPI(`/printer/print/cancel`);
-						break;
-					case 'printPause':
-						apiResult = await this.postAPI(`/printer/print/pause`);
-						break;
-					case 'printResume':
-						apiResult = await this.postAPI(`/printer/print/resume`);
-						break;
-					case 'restartFirmware':
-						apiResult = await this.postAPI(`/printer/firmware_restart`);
-						break;
-					case 'restartHost':
-						apiResult = await this.postAPI(`/printer/restart`);
-						break;
-					case 'restartServer':
-						apiResult = await this.postAPI(`/server/restart`);
-						break;
-					case 'systemReboot':
-						apiResult = await this.postAPI(`/machine/reboot`);
-						break;
-					case 'systemShutdown':
-						apiResult = await this.postAPI(`/machine/shutdown`);
-						break;
-				}
-				if (apiResult) {
-					if (apiResult.result == 'ok') {
-						this.log.info(`Command "${deviceId[3]}" send successfully`);
-					} else {
-						this.log.error(`Sending command "${deviceId[3]}" failed, error  : ${JSON.stringify(apiResult.message)}`);
-					}
-				}
+		// Split state name in segments to be used later
+		const deviceId = id.split('.');
+		// If state us related to control commands, customize API post call
+		this.log.debug(`Control command received ${deviceId[3]}`);
+		let apiResult = null;
+		switch (deviceId[3]) {
+			case 'emergencyStop':
+				apiResult = await this.postAPI(`/printer/emergency_stop`);
+				break;
+			case 'printCancel':
+				apiResult = await this.postAPI(`/printer/print/cancel`);
+				break;
+			case 'printPause':
+				apiResult = await this.postAPI(`/printer/print/pause`);
+				break;
+			case 'printResume':
+				apiResult = await this.postAPI(`/printer/print/resume`);
+				break;
+			case 'restartFirmware':
+				apiResult = await this.postAPI(`/printer/firmware_restart`);
+				break;
+			case 'restartHost':
+				apiResult = await this.postAPI(`/printer/restart`);
+				break;
+			case 'restartServer':
+				apiResult = await this.postAPI(`/server/restart`);
+				break;
+			case 'systemReboot':
+				apiResult = await this.postAPI(`/machine/reboot`);
+				break;
+			case 'systemShutdown':
+				apiResult = await this.postAPI(`/machine/shutdown`);
+				break;
+			case 'runGcode':
+				apiResult = await this.postAPI(`/printer/gcode/script?script=${state.val}`);
+				break;
+		}
+		if (apiResult) {
+			if (apiResult.result === 'ok') {
+				this.log.info(`Command "${deviceId[3]}" send successfully`);
+			} else {
+				this.log.error(`Sending command "${deviceId[3]}" failed, error  : ${JSON.stringify(apiResult.message)}`);
 			}
 		}
 	}
@@ -387,7 +546,7 @@ class KlipperMoonraker extends utils.Adapter {
 	 * @param value {boolean | string | null} Value of the state
 	 */
 	async create_state(stateName, name, value) {
-		this.log.debug('Create_state called for : ' + stateName + ' with value : ' + value);
+		this.log.debug(`Create_state called for : ${stateName} with value : ${value}`);
 
 		/**
 		 * Value rounding 1 digits
@@ -409,7 +568,7 @@ class KlipperMoonraker extends utils.Adapter {
 		/**
 		 * Value rounding 2 digits
 		 * @param {number} [value] - Number to round with , separator
-		 * @param {object} [adapter] - intance "this" object
+		 * @param {object} [adapter] - instance "this" object
 		 */
 		function roundTwoDigits(value, adapter) {
 			let rounded;
@@ -448,11 +607,10 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 
 		try {
-
 			// Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
 			const common = {};
 			if (!stateAttr[name]) {
-				const warnMessage = `State attribute definition missing for + ${name}`;
+				const warnMessage = `State attribute definition missing for "${name}" (received value ${value} - ${typeof value})`;
 				if (warnMessages[name] !== warnMessage) {
 					warnMessages[name] = warnMessage;
 					// Send information to Sentry
@@ -461,7 +619,7 @@ class KlipperMoonraker extends utils.Adapter {
 			}
 			let createStateName = stateName;
 
-			//Todo: Disable stateAttr based channel creation
+			// Todo: Disable stateAttr based channel creation
 			// const channel = stateAttr[name] !== undefined ? stateAttr[name].root || '' : '';
 			const channel = '';
 			if (channel !== '') {
@@ -526,7 +684,7 @@ class KlipperMoonraker extends utils.Adapter {
 						value = roundThreeDigits(value, this);
 					}
 				}
-				await this.setStateChanged(createStateName, {
+				await this.setStateChangedAsync(createStateName, {
 					val: value,
 					ack: true,
 				});
@@ -547,8 +705,8 @@ class KlipperMoonraker extends utils.Adapter {
 						val: false,
 						ack: true,
 					});
-					this.log.debug('Online state expired for ' + stateName);
-				}, this.config.apiRefreshInterval * 2000);
+					this.log.debug(`Online state expired for ${stateName}`);
+				}, this.config.apiRefreshInterval * 2_000);
 				this.log.debug('Expire time set for state : ' + name + ' with time in seconds : ' + this.config.apiRefreshInterval * 2);
 			}
 
@@ -556,7 +714,7 @@ class KlipperMoonraker extends utils.Adapter {
 			common.write && this.subscribeStates(createStateName);
 
 		} catch (error) {
-			this.log.error('Create state error = ' + error);
+			this.log.error(`Create state error = ${error}`);
 		}
 	}
 
@@ -565,18 +723,17 @@ class KlipperMoonraker extends utils.Adapter {
 	 * @param {string} msg ID of the state
 	 */
 	sendSentry(msg) {
-
 		if (!disableSentry) {
-			this.log.info(`[Error catched and send to Sentry, thank you collaborating!] error: ${msg}`);
 			if (this.supportsFeature && this.supportsFeature('PLUGINS')) {
 				const sentryInstance = this.getPluginInstance('sentry');
 				if (sentryInstance) {
+					this.log.info(`[Error caught and sent to Sentry, thank you for collaborating!] error: ${msg}`);
 					sentryInstance.getSentryObject().captureException(msg);
 				}
 			}
 		} else {
-			this.log.error(`Sentry disabled, error catched : ${msg}`);
-			console.error(`Sentry disabled, error catched : ${msg}`);
+			this.log.error(`Sentry disabled, error caught : ${msg}`);
+			console.error(`Sentry disabled, error caught : ${msg}`);
 		}
 	}
 
