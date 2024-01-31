@@ -31,6 +31,8 @@ class KlipperMoonraker extends utils.Adapter {
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 
+		/** Retry if login failed after X ms */
+		this.RETRY_LOGIN_MS = 90_000;
 		/** The one shot token for websocket auth */
 		this.oneShotToken = '';
 		/** The current token used for authentication */
@@ -58,7 +60,7 @@ class KlipperMoonraker extends utils.Adapter {
 
 			this.oneShotToken =  res.data.result;
 		} catch (e) {
-			this.log.error(`Could not retrieve one shot token: ${e.message}`);
+			throw new Error(`Could not retrieve one shot token: ${e.message}`);
 		}
 	}
 
@@ -80,7 +82,7 @@ class KlipperMoonraker extends utils.Adapter {
 			this.log.info(`Successfully logged in as ${res.data.result.username}`);
 			this.token = res.data.result.token;
 		} catch (e) {
-			this.log.error(`Could not login: ${e.message}`);
+			throw new Error(`Could not login: ${e.message}`);
 		}
 	}
 
@@ -89,8 +91,16 @@ class KlipperMoonraker extends utils.Adapter {
 	 */
 	async onReady() {
 		if (this.config.auth) {
-			await this.login();
-			await this.getOneShotToken();
+			try {
+				await this.login();
+				await this.getOneShotToken();
+			} catch (e) {
+				this.log.error(e.message);
+
+				this.log.info(`Will try again in ${this.RETRY_LOGIN_MS / 1_000} seconds`);
+				this.setTimeout(() => this.onReady(), this.RETRY_LOGIN_MS);
+				return;
+			}
 		}
 
 		// Reset the connection indicator during startup
