@@ -1,0 +1,65 @@
+{
+  "type": "panel",
+  "items": {
+    "customName": {
+      "label": "Name",
+      "default": "My 3D printer",
+      "type": "text",
+      "help": "Define your own printer name for this instance"
+    },
+    "klipperPort": {
+      "newLine": true,
+      "label": "Port",
+      "type": "number",
+      "default": 80
+    },
+    "klipperIP": {
+      "label": "IP",
+      "type": "text",
+      "default": "192.168.1.50",
+      "help": "IP of your Klipper installation"
+    },
+    "apiRefreshInterval": {
+      "newLine": true,
+      "label": "Refresh interval",
+      "default": 60,
+      "min": 1,
+      "type": "number",
+      "help": "in Seconds"
+    },
+    "apiRefreshIntervalOperational": {
+      "label": "Operational refresh interval",
+      "default": 30,
+      "min": 1,
+      "type": "number",
+      "help": "in Seconds"
+    },
+    "apiRefreshIntervalPrinting": {
+      "label": "Printing refresh interval",
+      "default": 10,
+      "min": 1,
+      "type": "number",
+      "help": "in Seconds"
+    },
+    "auth": {
+      "newLine": true,
+      "label": "Authenticate",
+      "type": "checkbox",
+      "default": false,
+      "help": "If authentication is required"
+    },
+    "user": {
+      "newLine": true,
+      "label": "Username",
+      "type": "text",
+      "default": "",
+      "hidden": "!data.auth"
+    },
+    "password": {
+      "label": "Password",
+      "type": "password",
+      "default": "",
+      "hidden": "!data.auth"
+    }
+  }
+}
