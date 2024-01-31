@@ -120,6 +120,7 @@
         "apiRefreshInterval": 60,
         "apiRefreshIntervalOperational": 30,
         "apiRefreshIntervalPrinting": 10,
+        "useSsl": false,
         "auth": false,
         "password": "",
         "user": ""

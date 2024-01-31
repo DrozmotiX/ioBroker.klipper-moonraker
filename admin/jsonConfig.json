@@ -48,6 +48,11 @@
       "default": false,
       "help": "If authentication is required"
     },
+    "useSsl": {
+      "type": "checkbox",
+      "label": "Use SSL",
+      "help": "If the API is reachable over https"
+    },
     "user": {
       "newLine": true,
       "label": "Username",

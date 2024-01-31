@@ -15,6 +15,7 @@ let reconnectTimer = null; // Polling timer
 let connectionState = null;
 const stateExpire = {}, warnMessages = {}; // Timers to reset online state of device
 const disableSentry = false; // Ensure to set to true during development !
+const https = require('node:https');
 
 
 class KlipperMoonraker extends utils.Adapter {
@@ -43,6 +44,8 @@ class KlipperMoonraker extends utils.Adapter {
 		this.availableMethods = {};
 		/** List of config definitions for subscription of events */
 		this.subscribeMethods = {};
+
+		this.axios = axios.create();
 	}
 
 	/**
@@ -52,7 +55,7 @@ class KlipperMoonraker extends utils.Adapter {
 	 */
 	async getOneShotToken() {
 		try {
-			const res = await axios.get(`${this.getApiBaseUrl()}/access/oneshot_token`, {
+			const res = await this.axios.get(`${this.getApiBaseUrl()}/access/oneshot_token`, {
 				headers: {
 					Authorization: `Bearer ${this.token}`
 				}
@@ -72,7 +75,7 @@ class KlipperMoonraker extends utils.Adapter {
 	async login() {
 		this.log.info('Login into API');
 		try {
-			const res = await axios.post(`${this.getApiBaseUrl()}/access/login`,
+			const res = await this.axios.post(`${this.getApiBaseUrl()}/access/login`,
 				{
 					'username': this.config.user,
 					'password': this.config.password,
@@ -87,9 +90,34 @@ class KlipperMoonraker extends utils.Adapter {
 	}
 
 	/**
+	 * Configure axios according to the instance config
+	 */
+	configureAxios() {
+		if (!this.config.useSsl) {
+			return;
+		}
+
+		this.axios = axios.create({
+			httpsAgent: new https.Agent({
+				rejectUnauthorized: false
+			})
+		});
+	}
+
+	/**
 	 * Is called when databases are connected and adapter received configuration.
 	 */
 	async onReady() {
+		this.configureAxios();
+		return this.init();
+	}
+
+	/**
+	 * Executes the initial adapter logic
+	 *
+	 * @return {Promise<void>}
+	 */
+	async init() {
 		if (this.config.auth) {
 			try {
 				await this.login();
@@ -98,30 +126,29 @@ class KlipperMoonraker extends utils.Adapter {
 				this.log.error(e.message);
 
 				this.log.info(`Will try again in ${this.RETRY_LOGIN_MS / 1_000} seconds`);
-				this.setTimeout(() => this.onReady(), this.RETRY_LOGIN_MS);
+				this.setTimeout(() => this.init(), this.RETRY_LOGIN_MS);
 				return;
 			}
 		}
 
 		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
-		//start polling
-		// await this.polling_timer();
-		await this.handleWebSocket();
-
+		return this.handleWebSocket();
 	}
 
 	/**
 	 * Handle all websocket related data interaction
 	 */
 	async handleWebSocket() {
-		let wsUrl = `ws://${this.config.klipperIP}:${this.config.klipperPort}/websocket`;
+		let wsUrl = `${this.config.useSsl ? 'wss': 'ws'}://${this.config.klipperIP}:${this.config.klipperPort}/websocket`;
 		if (this.config.auth) {
 			wsUrl += `?token=${this.oneShotToken}`;
 		}
 
 		// Open socket connection
-		ws = new WebSocket(wsUrl);
+		ws = new WebSocket(wsUrl, {
+			rejectUnauthorized: !this.config.useSsl
+		});
 
 		// Connection successfully open, handle routine to initiates all objects and states
 		ws.on('open', () => {
@@ -290,7 +317,7 @@ class KlipperMoonraker extends utils.Adapter {
 	 * @return {string}
 	 */
 	getApiBaseUrl() {
-		return `http://${this.config.klipperIP}:${this.config.klipperPort}`;
+		return `${this.config.useSsl ? 'https': 'http'}://${this.config.klipperIP}:${this.config.klipperPort}`;
 	}
 
 	async postAPI(endpoint) {
@@ -304,7 +331,7 @@ class KlipperMoonraker extends utils.Adapter {
 		try {
 			if (!endpoint) return;
 			endpoint = `${this.getApiBaseUrl()}${endpoint}`;
-			const result = axios.post(endpoint, null, {headers})
+			const result = this.axios.post(endpoint, null, {headers})
 				.then((response) => {
 					this.log.debug(`Sending command to Klippy API: ${endpoint}`);
 					return response.data;
@@ -320,7 +347,7 @@ class KlipperMoonraker extends utils.Adapter {
 	}
 
 	/**
-	 * Traeverses the json-object and provides all information for creating/updating states
+	 * Traverses the json-object and provides all information for creating/updating states
 	 * @param {object} o Json-object to be added as states
 	 * @param {string | null} parent Defines the parent object in the state tree
 	 * @param {boolean} replaceName Steers if name from child should be used as name for structure element (channel)
@@ -396,7 +423,9 @@ class KlipperMoonraker extends utils.Adapter {
 				reconnectTimer = null;
 			}
 			// Close socket connection
-			ws.close();
+			if (ws) {
+				ws.close();
+			}
 			callback();
 		} catch (e) {
 			this.log.error(e);
@@ -627,8 +656,8 @@ class KlipperMoonraker extends utils.Adapter {
 						val: false,
 						ack: true,
 					});
-					this.log.debug('Online state expired for ' + stateName);
-				}, this.config.apiRefreshInterval * 2000);
+					this.log.debug(`Online state expired for ${stateName}`);
+				}, this.config.apiRefreshInterval * 2_000);
 				this.log.debug('Expire time set for state : ' + name + ' with time in seconds : ' + this.config.apiRefreshInterval * 2);
 			}
 
@@ -636,7 +665,7 @@ class KlipperMoonraker extends utils.Adapter {
 			common.write && this.subscribeStates(createStateName);
 
 		} catch (error) {
-			this.log.error('Create state error = ' + error);
+			this.log.error(`Create state error = ${error}`);
 		}
 	}
 
