@@ -607,11 +607,10 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 
 		try {
-
 			// Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
 			const common = {};
 			if (!stateAttr[name]) {
-				const warnMessage = `State attribute definition missing for "${name}"`;
+				const warnMessage = `State attribute definition missing for "${name}" (received value ${value} - ${typeof value})`;
 				if (warnMessages[name] !== warnMessage) {
 					warnMessages[name] = warnMessage;
 					// Send information to Sentry
