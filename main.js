@@ -32,12 +32,16 @@ class KlipperMoonraker extends utils.Adapter {
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 
+		/** Refresh token after X ms */
+		this.REFRESH_TOKEN_MS = 50 * 60 * 1_000;
 		/** Retry if login failed after X ms */
 		this.RETRY_LOGIN_MS = 90_000;
 		/** The one shot token for websocket auth */
 		this.oneShotToken = '';
 		/** The current token used for authentication */
 		this.token = '';
+		/** The current refresh token */
+		this.refreshToken = '';
 		/** Array to store state objects to avoid unneeded object changes */
 		this.createdStatesDetails = {};
 		/** Store all available methods to handle data calls */
@@ -84,6 +88,7 @@ class KlipperMoonraker extends utils.Adapter {
 
 			this.log.info(`Successfully logged in as ${res.data.result.username}`);
 			this.token = res.data.result.token;
+			this.refreshToken = res.data.result.refresh_token;
 		} catch (e) {
 			throw new Error(`Could not login: ${e.message}`);
 		}
@@ -113,6 +118,45 @@ class KlipperMoonraker extends utils.Adapter {
 	}
 
 	/**
+	 * Refresh the access token
+	 *
+	 * @return {Promise<void>}
+	 */
+	async refreshAccessToken() {
+		try {
+			const res = await this.axios.post(`${this.getApiBaseUrl()}/access/refresh_jwt`, { refresh_token: this.refreshToken });
+
+			this.token = res.data.result.token;
+		} catch (e) {
+			throw new Error(`Could not refresh access token: ${e.message}`);
+		}
+	}
+
+	/**
+	 * Start the authorization procedure
+	 * Login, getting one shot token and refreshing regularly
+	 *
+	 * @return {Promise<void>}
+	 */
+	async startAuthorization() {
+		await this.login();
+		await this.getOneShotToken();
+
+		this.setInterval(() => {
+			this.log.info('Refresh access token');
+			try {
+				this.refreshAccessToken();
+				this.log.info('Access token successfully refreshed');
+			} catch (e) {
+				this.log.error(`Could not refresh access token: ${e.message}`);
+				// we need to login from scratch, restart instance to achieve this
+				this.log.error('Restarting instance');
+				this.restart();
+			}
+		}, this.REFRESH_TOKEN_MS);
+	}
+
+	/**
 	 * Executes the initial adapter logic
 	 *
 	 * @return {Promise<void>}
@@ -120,8 +164,7 @@ class KlipperMoonraker extends utils.Adapter {
 	async init() {
 		if (this.config.auth) {
 			try {
-				await this.login();
-				await this.getOneShotToken();
+				await this.startAuthorization();
 			} catch (e) {
 				this.log.error(e.message);
 
@@ -281,6 +324,13 @@ class KlipperMoonraker extends utils.Adapter {
 			reconnectTimer = setTimeout(() => {
 				console.log(`Trying to reconnect`);
 				this.log.info(`Trying to reconnect`);
+				if (this.config.auth) {
+					try {
+						this.getOneShotToken();
+					} catch (e) {
+						this.log.error(e.message);
+					}
+				}
 				this.handleWebSocket();
 			}, (10_000));
 		});
