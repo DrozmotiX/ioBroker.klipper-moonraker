@@ -18,7 +18,6 @@ const disableSentry = false; // Ensure to set to true during development !
 
 
 class KlipperMoonraker extends utils.Adapter {
-
 	/**
 	 * @param {Partial<utils.AdapterOptions>} [options={}]
 	 */
@@ -32,16 +31,67 @@ class KlipperMoonraker extends utils.Adapter {
 		this.on('stateChange', this.onStateChange.bind(this));
 		this.on('unload', this.onUnload.bind(this));
 
-		// Array for created states
-		this.createdStatesDetails = {}; //  Array to store state objects to avoid unneeded object changes
-		this.availableMethods = {}; // Store all available methods to handle data calls
-		this.subscribeMethods = {}; // List of config definitions for subscription of events
+		/** The one shot token for websocket auth */
+		this.oneShotToken = '';
+		/** The current token used for authentication */
+		this.token = '';
+		/** Array to store state objects to avoid unneeded object changes */
+		this.createdStatesDetails = {};
+		/** Store all available methods to handle data calls */
+		this.availableMethods = {};
+		/** List of config definitions for subscription of events */
+		this.subscribeMethods = {};
+	}
+
+	/**
+	 * Get the one shot token for authenticating websocket connection
+	 *
+	 * @return {Promise<void>}
+	 */
+	async getOneShotToken() {
+		try {
+			const res = await axios.get(`${this.getApiBaseUrl()}/access/oneshot_token`, {
+				headers: {
+					Authorization: `Bearer ${this.token}`
+				}
+			});
+
+			this.oneShotToken =  res.data.result;
+		} catch (e) {
+			this.log.error(`Could not retrieve one shot token: ${e.message}`);
+		}
+	}
+
+	/**
+	 * Perform login with credentials from config
+	 *
+	 * @return {Promise<void>}
+	 */
+	async login() {
+		this.log.info('Login into API');
+		try {
+			const res = await axios.post(`${this.getApiBaseUrl()}/access/login`,
+				{
+					'username': this.config.user,
+					'password': this.config.password,
+					'source': 'moonraker'
+				});
+
+			this.log.info(`Successfully logged in as ${res.data.result.username}`);
+			this.token = res.data.result.token;
+		} catch (e) {
+			this.log.error(`Could not login: ${e.message}`);
+		}
 	}
 
 	/**
 	 * Is called when databases are connected and adapter received configuration.
 	 */
 	async onReady() {
+		if (this.config.auth) {
+			await this.login();
+			await this.getOneShotToken();
+		}
 
 		// Reset the connection indicator during startup
 		this.setState('info.connection', false, true);
@@ -55,9 +105,13 @@ class KlipperMoonraker extends utils.Adapter {
 	 * Handle all websocket related data interaction
 	 */
 	async handleWebSocket() {
+		let wsUrl = `ws://${this.config.klipperIP}:${this.config.klipperPort}/websocket`;
+		if (this.config.auth) {
+			wsUrl += `?token=${this.oneShotToken}`;
+		}
 
 		// Open socket connection
-		ws = new WebSocket(`ws://${this.config.klipperIP}:${this.config.klipperPort}/websocket`);
+		ws = new WebSocket(wsUrl);
 
 		// Connection successfully open, handle routine to initiates all objects and states
 		ws.on('open', () => {
@@ -91,14 +145,12 @@ class KlipperMoonraker extends utils.Adapter {
 				console.warn(`Unexpected message received ${JSON.stringify(data)}`);
 			}
 
-			// console.log(data);
-			// this.log.info(data);
 			const rpc_data = JSON.parse(data);
 
-			// Handle error message and retur function
+			// Handle error message and return function
 			if (rpc_data.error) {
-				console.error(`${JSON.stringify(rpc_data.error.message)}`);
-				this.log.error(`${JSON.stringify(rpc_data.error.message)}`);
+				console.error(`Received error message for "${rpc_data.id}" over websocket: ${rpc_data.error.message}`);
+				this.log.error(`Received error message for "${rpc_data.id}" over websocket: ${rpc_data.error.message}`);
 				return;
 			}
 
@@ -193,7 +245,7 @@ class KlipperMoonraker extends utils.Adapter {
 				console.log(`Trying to reconnect`);
 				this.log.info(`Trying to reconnect`);
 				this.handleWebSocket();
-			}, (10000));
+			}, (10_000));
 		});
 
 		// Handle errors on socket connection
@@ -222,23 +274,38 @@ class KlipperMoonraker extends utils.Adapter {
 		}
 	}
 
-	async postAPI(url) {
-		this.log.debug(`Post API called for :  ${url}`);
+	/**
+	 * Get the API base url based on the configuration
+	 *
+	 * @return {string}
+	 */
+	getApiBaseUrl() {
+		return `http://${this.config.klipperIP}:${this.config.klipperPort}`;
+	}
+
+	async postAPI(endpoint) {
+		this.log.debug(`Post API called for: ${endpoint}`);
+		const headers = {};
+
+		if (this.config.auth) {
+			headers.Authorization = `Bearer ${this.token}`;
+		}
+
 		try {
-			if (!url) return;
-			url = `http://${this.config.klipperIP}:${this.config.klipperPort}${url}`;
-			const result = axios.post(url)
+			if (!endpoint) return;
+			endpoint = `${this.getApiBaseUrl()}${endpoint}`;
+			const result = axios.post(endpoint, null, {headers})
 				.then((response) => {
-					this.log.debug(`Sending command to Klippy API : ${url}`);
+					this.log.debug(`Sending command to Klippy API: ${endpoint}`);
 					return response.data;
 				})
 				.catch((error) => {
-					this.log.debug('Sending command to Klippy API : ' + url + ' failed with error ' + error);
+					this.log.debug(`Sending command to Klippy API: ${endpoint} failed with error ${error}`);
 					return error;
 				});
 			return result;
-		} catch (error) {
-			this.log.error(`Issue in postAPI ${error}`);
+		} catch (e) {
+			this.log.error(`Issue in postAPI: ${e.message}`);
 		}
 	}
 
@@ -455,7 +522,7 @@ class KlipperMoonraker extends utils.Adapter {
 			// Try to get details from state lib, if not use defaults. throw warning is states is not known in attribute list
 			const common = {};
 			if (!stateAttr[name]) {
-				const warnMessage = `State attribute definition missing for + ${name}`;
+				const warnMessage = `State attribute definition missing for "${name}"`;
 				if (warnMessages[name] !== warnMessage) {
 					warnMessages[name] = warnMessage;
 					// Send information to Sentry
@@ -464,7 +531,7 @@ class KlipperMoonraker extends utils.Adapter {
 			}
 			let createStateName = stateName;
 
-			//Todo: Disable stateAttr based channel creation
+			// Todo: Disable stateAttr based channel creation
 			// const channel = stateAttr[name] !== undefined ? stateAttr[name].root || '' : '';
 			const channel = '';
 			if (channel !== '') {
@@ -529,7 +596,7 @@ class KlipperMoonraker extends utils.Adapter {
 						value = roundThreeDigits(value, this);
 					}
 				}
-				await this.setStateChanged(createStateName, {
+				await this.setStateChangedAsync(createStateName, {
 					val: value,
 					ack: true,
 				});
