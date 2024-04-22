@@ -1,163 +1,176 @@
 {
-    "common": {
-        "name": "klipper-moonraker",
-        "version": "0.0.4",
-        "news": {
-            "0.0.4": {
-                "en": "Implemented rounding of digits\nTransfer ownership to DrozmotiX\nImprove automerge for dependency updates\nUpdate state attribute relations",
-                "de": "Rundung von Ziffern implementiert\nÜbertragen Sie das Eigentum an DrozmotiX\nVerbessern Sie Automerge für Abhängigkeitsaktualisierungen\nAktualisieren Sie die Statusattributbeziehungen",
-                "ru": "Реализовано округление цифр\nПередать право собственности DrozmotiX\nУлучшение автоматического слияния для обновлений зависимостей\nОбновить отношения атрибутов состояния",
-                "pt": "Arredondamento de dígitos implementado\nTransferir propriedade para DrozmotiX\nMelhore o automerge para atualizações de dependências\nAtualizar relações de atributo de estado",
-                "nl": "Afronding van cijfers geïmplementeerd\nDraag het eigendom over aan DrozmotiX\nVerbeter automerge voor afhankelijkheidsupdates\nUpdate statusattribuutrelaties",
-                "fr": "Arrondi des chiffres implémenté\nTransférer la propriété à DrozmotiX\nAméliorer la fusion automatique pour les mises à jour des dépendances\nMettre à jour les relations d'attributs d'état",
-                "it": "Arrotondamento delle cifre implementato\nTrasferisci la proprietà a DrozmotiX\nMigliora l'automerge per gli aggiornamenti delle dipendenze\nAggiorna le relazioni degli attributi di stato",
-                "es": "Redondeo de dígitos implementado\nTransferir la propiedad a DrozmotiX\nMejorar la automatización para las actualizaciones de dependencias\nActualizar relaciones de atributos de estado",
-                "pl": "Zaimplementowano zaokrąglanie cyfr\nPrzenieś własność na DrozmotiX\nPopraw automerge dla aktualizacji zależności\nZaktualizuj relacje atrybutów stanu",
-                "zh-cn": "实施数字舍入\n将所有权转让给DrozmotiX\n改进自动合并以更新依赖项\n更新状态属性关系"
-            },
-            "0.0.3": {
-                "en": "Switch from data-polling to live socket events :-)\nEnsure all states and objects available are created\nreconnect if connection closes (retry after 10 sec, ToDo : make adjustable)",
-                "de": "Wechseln Sie von Datenabfragen zu Live-Socket-Ereignissen :-)\nStellen Sie sicher, dass alle verfügbaren Status und Objekte erstellt wurden\nStellen Sie die Verbindung wieder her, wenn die Verbindung geschlossen wird (versuchen Sie es nach 10 Sekunden erneut. ToDo: Einstellbar machen)",
-                "ru": "Переключитесь с опроса данных на живые события сокета :-)\nУбедитесь, что созданы все доступные состояния и объекты.\nповторно подключиться, если соединение закрывается (повторить попытку через 10 секунд, ToDo: сделать настраиваемым)",
-                "pt": "Mudar de pesquisa de dados para eventos de soquete ao vivo :-)\nCertifique-se de que todos os estados e objetos disponíveis sejam criados\nreconecte se a conexão for fechada (tente novamente após 10 segundos, ToDo: tornar ajustável)",
-                "nl": "Overschakelen van datapolling naar live socket-evenementen :-)\nZorg ervoor dat alle beschikbare staten en objecten zijn gemaakt\nmaak opnieuw verbinding als de verbinding wordt verbroken (probeer het opnieuw na 10 seconden, ToDo: aanpasbaar maken)",
-                "fr": "Passer de l'interrogation de données aux événements de socket en direct :-)\nAssurez-vous que tous les états et objets disponibles sont créés\nse reconnecter si la connexion se ferme (réessayer après 10 sec, ToDo: rendre réglable)",
-                "it": "Passa dal polling dei dati agli eventi live socket :-)\nAssicurarsi che tutti gli stati e gli oggetti disponibili siano stati creati\nriconnettersi se la connessione si chiude (riprovare dopo 10 sec, ToDo: rendere regolabile)",
-                "es": "Cambie del sondeo de datos a eventos de socket en vivo :-)\nAsegúrese de que se creen todos los estados y objetos disponibles\nvuelva a conectar si la conexión se cierra (vuelva a intentarlo después de 10 segundos, Tareas pendientes: hacer ajustable)",
-                "pl": "Przełącz się z odpytywania danych na zdarzenia dotyczące gniazd na żywo :-)\nUpewnij się, że zostały utworzone wszystkie dostępne stany i obiekty\npołącz ponownie, jeśli połączenie zostanie zamknięte (spróbuj ponownie po 10 sekundach, Do zrobienia: ustaw)",
-                "zh-cn": "从数据轮询切换到实时套接字事件：-)\n确保创建了所有可用状态和对象\n如果连接关闭则重新连接（10秒钟后重试，待办事项：可调）"
-            },
-            "0.0.2": {
-                "en": "Implement control commands\nProper error handling for API calls\nupdate state attributes for control commands",
-                "de": "Implementieren Sie Steuerbefehle\nRichtige Fehlerbehandlung für API-Aufrufe\nStatusattribute für Steuerbefehle aktualisieren",
-                "ru": "Команды управления агрегатом\nПравильная обработка ошибок для вызовов API\nобновить атрибуты состояния для управляющих команд",
-                "pt": "Implementar comandos de controle\nTratamento adequado de erros para chamadas de API\natualizar atributos de estado para comandos de controle",
-                "nl": "Implementeer besturingsopdrachten\nJuiste foutafhandeling voor API-aanroepen\nupdate statusattributen voor besturingsopdrachten",
-                "fr": "Mettre en œuvre des commandes de contrôle\nGestion correcte des erreurs pour les appels d'API\nmettre à jour les attributs d'état pour les commandes de contrôle",
-                "it": "Implementare i comandi di controllo\nCorretta gestione degli errori per le chiamate API\naggiorna gli attributi di stato per i comandi di controllo",
-                "es": "Implementar comandos de control\nManejo adecuado de errores para llamadas a API\nactualizar atributos de estado para comandos de control",
-                "pl": "Wdrażaj polecenia sterujące\nWłaściwa obsługa błędów dla wywołań API\nzaktualizuj atrybuty stanu dla poleceń sterujących",
-                "zh-cn": "实施控制命令\nAPI调用的正确错误处理\n更新控制命令的状态属性"
-            },
-            "0.0.1": {
-                "en": "initial release",
-                "de": "Erstveröffentlichung",
-                "ru": "Начальная версия",
-                "pt": "lançamento inicial",
-                "nl": "Eerste uitgave",
-                "fr": "Première version",
-                "it": "Versione iniziale",
-                "es": "Versión inicial",
-                "pl": "Pierwsze wydanie",
-                "zh-cn": "首次出版"
-            }
-        },
-        "title": "Klipper Moonraker",
-        "titleLang": {
-            "en": "Klipper Moonraker",
-            "de": "Klipper Moonraker",
-            "ru": "Клиппер Мунрейкер",
-            "pt": "Klipper Moonraker",
-            "nl": "Klipper Moonraker",
-            "fr": "Klipper Moonraker",
-            "it": "Klipper Moonraker",
-            "es": "Klipper Moonraker",
-            "pl": "Klipper Moonraker",
-            "zh-cn": "Klipper Moonraker"
-        },
-        "desc": {
-            "en": "Adapter to interact with klipper by API",
-            "de": "Adapter zur Interaktion mit klipper per API",
-            "ru": "Адаптер для взаимодействия с klipper по API",
-            "pt": "Adaptador para interagir com klipper por API",
-            "nl": "Adapter voor interactie met klipper via API",
-            "fr": "Adaptateur pour interagir avec klipper par API",
-            "it": "Adattatore per interagire con klipper tramite API",
-            "es": "Adaptador para interactuar con klipper por API",
-            "pl": "Adapter do interakcji z klipper przez API",
-            "zh-cn": "通过API与Klipper交互的适配器"
-        },
-        "authors": [
-            "DutchmanNL <rdrozda@hotmail.com>"
-        ],
-        "keywords": [
-            "klipper",
-            "printing",
-            "3d"
-        ],
-        "platform": "Javascript/Node.js",
-        "main": "main.js",
-        "icon": "klipper-moonraker.png",
-        "enabled": true,
-        "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.klipper-moonraker/master/admin/klipper-moonraker.png",
-        "readme": "https://github.com/DrozmotiX/ioBroker.klipper-moonraker/blob/master/README.md",
-        "loglevel": "info",
-        "mode": "daemon",
-        "type": "hardware",
-        "compact": true,
-        "connectionType": "local",
-        "dataSource": "poll",
-        "materialize": true,
-        "adminUI": {
-            "config": "json"
-        },
-        "dependencies": [
-            {
-                "js-controller": ">=4.0.0"
-            }
-        ],
-        "globalDependencies": [
-            {
-                "admin": ">=6.0.0"
-            }
-        ],
-        "tier": 2,
-        "licenseInformation": {
-            "license": "MIT",
-            "type": "free"
-        }
+  "common": {
+    "name": "klipper-moonraker",
+    "version": "0.1.0",
+    "news": {
+      "0.1.0": {
+        "en": "IMPORTANT: The adapter requires Node.js 18.x+\nadded state to run custom GCODE commands\nadded possiblity to use authentication\ncorrected some state definitions\nported UI to json config",
+        "de": "WICHTIG: Der Adapter benötigt Node.js 18.x+\nstatus hinzugefügt, um benutzerdefinierte GCODE-Befehle auszuführen\nhinzugefügt possiblity zu verwenden authentifizierung\neinige staatliche definitionen korrigiert\nportiert UI zu json config",
+        "ru": "ВАЖНО: адаптер требует Node.js 18.x+\nдобавленное состояние для запуска пользовательских команд GCODE\nдобавлена возможность использования аутентификации\nисправить некоторые определения состояния\nпортированный пользовательский интерфейс к конфигурации json",
+        "pt": "IMPORTANTE: O adaptador requer Node.js 18.x+\nestado adicionado para executar comandos GCODE personalizados\npossiblity adicionado para usar a autenticação\ncorrigiu algumas definições de estado\nported UI to json config",
+        "nl": "BELANGRIJK: De adapter vereist Node.js 18.x+\nstatus toegevoegd om aangepaste GCODE-opdrachten uit te voeren\ntoegevoegde mogelijkheid om authenticatie te gebruiken\ngecorrigeerd sommige staat definities\nuI geporteerd naar json config",
+        "fr": "IMPORTANT: L'adaptateur nécessite Node.js 18.x+\nétat ajouté pour exécuter des commandes GCODE personnalisées\npossibilité d'utiliser l'authentification\ncorrigé certaines définitions d'état\nl'interface utilisateur portée à json config",
+        "it": "IMPORTANTE: L'adattatore richiede Node.js 18.x+\nstato aggiunto per eseguire comandi GCODE personalizzati\naggiunto possiblity per utilizzare l'autenticazione\ncorretto alcune definizioni di stato\nported UI a json config",
+        "es": "IMPORTANTE: El adaptador requiere Node.js 18.x+\nestado añadido para ejecutar comandos GCODE personalizados\nañadir possiblity a utilizar autenticación\ncorregido algunas definiciones estatales\nported UI to json config",
+        "pl": "WAŻNE: Adapter wymaga Node.js 18.x +\ndodany stan do uruchamiania własnych poleceń GCODE\ndodana możliwość korzystania z uwierzytelniania\nskorygowane niektóre definicje stanu\nprzetransportowane UI do json config",
+        "uk": "IMPORTANT: Адаптер вимагає Node.js 18.x+\nдодано стан для запуску користувацьких команд GCODE\nдодано можливість використання автентичності\nвиправлено деякі визначення стану\nported UI в json config",
+        "zh-cn": "重要:适配器需要Node.js 18.x+\n为运行自定义的 GCODE 命令添加状态\n添加 possiblity 以使用认证\n更正一些州定义\n将 UI 移植到 Json 配置"
+      },
+      "0.0.4": {
+        "en": "Implemented rounding of digits\nTransfer ownership to DrozmotiX\nImprove automerge for dependency updates\nUpdate state attribute relations",
+        "de": "Rundung von Ziffern implementiert\nÜbertragen Sie das Eigentum an DrozmotiX\nVerbessern Sie Automerge für Abhängigkeitsaktualisierungen\nAktualisieren Sie die Statusattributbeziehungen",
+        "ru": "Реализовано округление цифр\nПередать право собственности DrozmotiX\nУлучшение автоматического слияния для обновлений зависимостей\nОбновить отношения атрибутов состояния",
+        "pt": "Arredondamento de dígitos implementado\nTransferir propriedade para DrozmotiX\nMelhore o automerge para atualizações de dependências\nAtualizar relações de atributo de estado",
+        "nl": "Afronding van cijfers geïmplementeerd\nDraag het eigendom over aan DrozmotiX\nVerbeter automerge voor afhankelijkheidsupdates\nUpdate statusattribuutrelaties",
+        "fr": "Arrondi des chiffres implémenté\nTransférer la propriété à DrozmotiX\nAméliorer la fusion automatique pour les mises à jour des dépendances\nMettre à jour les relations d'attributs d'état",
+        "it": "Arrotondamento delle cifre implementato\nTrasferisci la proprietà a DrozmotiX\nMigliora l'automerge per gli aggiornamenti delle dipendenze\nAggiorna le relazioni degli attributi di stato",
+        "es": "Redondeo de dígitos implementado\nTransferir la propiedad a DrozmotiX\nMejorar la automatización para las actualizaciones de dependencias\nActualizar relaciones de atributos de estado",
+        "pl": "Zaimplementowano zaokrąglanie cyfr\nPrzenieś własność na DrozmotiX\nPopraw automerge dla aktualizacji zależności\nZaktualizuj relacje atrybutów stanu",
+        "zh-cn": "实施数字舍入\n将所有权转让给DrozmotiX\n改进自动合并以更新依赖项\n更新状态属性关系"
+      },
+      "0.0.3": {
+        "en": "Switch from data-polling to live socket events :-)\nEnsure all states and objects available are created\nreconnect if connection closes (retry after 10 sec, ToDo : make adjustable)",
+        "de": "Wechseln Sie von Datenabfragen zu Live-Socket-Ereignissen :-)\nStellen Sie sicher, dass alle verfügbaren Status und Objekte erstellt wurden\nStellen Sie die Verbindung wieder her, wenn die Verbindung geschlossen wird (versuchen Sie es nach 10 Sekunden erneut. ToDo: Einstellbar machen)",
+        "ru": "Переключитесь с опроса данных на живые события сокета :-)\nУбедитесь, что созданы все доступные состояния и объекты.\nповторно подключиться, если соединение закрывается (повторить попытку через 10 секунд, ToDo: сделать настраиваемым)",
+        "pt": "Mudar de pesquisa de dados para eventos de soquete ao vivo :-)\nCertifique-se de que todos os estados e objetos disponíveis sejam criados\nreconecte se a conexão for fechada (tente novamente após 10 segundos, ToDo: tornar ajustável)",
+        "nl": "Overschakelen van datapolling naar live socket-evenementen :-)\nZorg ervoor dat alle beschikbare staten en objecten zijn gemaakt\nmaak opnieuw verbinding als de verbinding wordt verbroken (probeer het opnieuw na 10 seconden, ToDo: aanpasbaar maken)",
+        "fr": "Passer de l'interrogation de données aux événements de socket en direct :-)\nAssurez-vous que tous les états et objets disponibles sont créés\nse reconnecter si la connexion se ferme (réessayer après 10 sec, ToDo: rendre réglable)",
+        "it": "Passa dal polling dei dati agli eventi live socket :-)\nAssicurarsi che tutti gli stati e gli oggetti disponibili siano stati creati\nriconnettersi se la connessione si chiude (riprovare dopo 10 sec, ToDo: rendere regolabile)",
+        "es": "Cambie del sondeo de datos a eventos de socket en vivo :-)\nAsegúrese de que se creen todos los estados y objetos disponibles\nvuelva a conectar si la conexión se cierra (vuelva a intentarlo después de 10 segundos, Tareas pendientes: hacer ajustable)",
+        "pl": "Przełącz się z odpytywania danych na zdarzenia dotyczące gniazd na żywo :-)\nUpewnij się, że zostały utworzone wszystkie dostępne stany i obiekty\npołącz ponownie, jeśli połączenie zostanie zamknięte (spróbuj ponownie po 10 sekundach, Do zrobienia: ustaw)",
+        "zh-cn": "从数据轮询切换到实时套接字事件：-)\n确保创建了所有可用状态和对象\n如果连接关闭则重新连接（10秒钟后重试，待办事项：可调）"
+      },
+      "0.0.2": {
+        "en": "Implement control commands\nProper error handling for API calls\nupdate state attributes for control commands",
+        "de": "Implementieren Sie Steuerbefehle\nRichtige Fehlerbehandlung für API-Aufrufe\nStatusattribute für Steuerbefehle aktualisieren",
+        "ru": "Команды управления агрегатом\nПравильная обработка ошибок для вызовов API\nобновить атрибуты состояния для управляющих команд",
+        "pt": "Implementar comandos de controle\nTratamento adequado de erros para chamadas de API\natualizar atributos de estado para comandos de controle",
+        "nl": "Implementeer besturingsopdrachten\nJuiste foutafhandeling voor API-aanroepen\nupdate statusattributen voor besturingsopdrachten",
+        "fr": "Mettre en œuvre des commandes de contrôle\nGestion correcte des erreurs pour les appels d'API\nmettre à jour les attributs d'état pour les commandes de contrôle",
+        "it": "Implementare i comandi di controllo\nCorretta gestione degli errori per le chiamate API\naggiorna gli attributi di stato per i comandi di controllo",
+        "es": "Implementar comandos de control\nManejo adecuado de errores para llamadas a API\nactualizar atributos de estado para comandos de control",
+        "pl": "Wdrażaj polecenia sterujące\nWłaściwa obsługa błędów dla wywołań API\nzaktualizuj atrybuty stanu dla poleceń sterujących",
+        "zh-cn": "实施控制命令\nAPI调用的正确错误处理\n更新控制命令的状态属性"
+      },
+      "0.0.1": {
+        "en": "initial release",
+        "de": "Erstveröffentlichung",
+        "ru": "Начальная версия",
+        "pt": "lançamento inicial",
+        "nl": "Eerste uitgave",
+        "fr": "Première version",
+        "it": "Versione iniziale",
+        "es": "Versión inicial",
+        "pl": "Pierwsze wydanie",
+        "zh-cn": "首次出版"
+      }
     },
-    "native": {
-        "customName": "My 3D printer",
-        "klipperPort": "80",
-        "klipperIP": "192.168.1.50",
-        "apiRefreshInterval": 60,
-        "apiRefreshIntervalOperational": 30,
-        "apiRefreshIntervalPrinting": 10,
-        "useSsl": false,
-        "auth": false,
-        "password": "",
-        "user": ""
+    "title": "Klipper Moonraker",
+    "titleLang": {
+      "en": "Klipper Moonraker",
+      "de": "Klipper Moonraker",
+      "ru": "Клиппер Мунрейкер",
+      "pt": "Klipper Moonraker",
+      "nl": "Klipper Moonraker",
+      "fr": "Klipper Moonraker",
+      "it": "Klipper Moonraker",
+      "es": "Klipper Moonraker",
+      "pl": "Klipper Moonraker",
+      "zh-cn": "Klipper Moonraker"
     },
-    "protectedNative": [
-        "user",
-        "password"
+    "desc": {
+      "en": "Adapter to interact with klipper by API",
+      "de": "Adapter zur Interaktion mit klipper per API",
+      "ru": "Адаптер для взаимодействия с klipper по API",
+      "pt": "Adaptador para interagir com klipper por API",
+      "nl": "Adapter voor interactie met klipper via API",
+      "fr": "Adaptateur pour interagir avec klipper par API",
+      "it": "Adattatore per interagire con klipper tramite API",
+      "es": "Adaptador para interactuar con klipper por API",
+      "pl": "Adapter do interakcji z klipper przez API",
+      "zh-cn": "通过API与Klipper交互的适配器"
+    },
+    "authors": [
+      "DutchmanNL <rdrozda@hotmail.com>"
     ],
-    "encryptedNative": [
-        "password"
+    "keywords": [
+      "klipper",
+      "printing",
+      "3d"
     ],
-    "objects": [],
-    "instanceObjects": [
-        {
-            "_id": "info",
-            "type": "channel",
-            "common": {
-                "name": "Information"
-            },
-            "native": {}
-        },
-        {
-            "_id": "info.connection",
-            "type": "state",
-            "common": {
-                "role": "indicator.connected",
-                "name": "Device or service connected",
-                "type": "boolean",
-                "read": true,
-                "write": false,
-                "def": false
-            },
-            "native": {}
-        }
-    ]
+    "platform": "Javascript/Node.js",
+    "main": "main.js",
+    "icon": "klipper-moonraker.png",
+    "enabled": true,
+    "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.klipper-moonraker/master/admin/klipper-moonraker.png",
+    "readme": "https://github.com/DrozmotiX/ioBroker.klipper-moonraker/blob/master/README.md",
+    "loglevel": "info",
+    "mode": "daemon",
+    "type": "hardware",
+    "compact": true,
+    "connectionType": "local",
+    "dataSource": "poll",
+    "materialize": true,
+    "adminUI": {
+      "config": "json"
+    },
+    "dependencies": [
+      {
+        "js-controller": ">=4.0.0"
+      }
+    ],
+    "globalDependencies": [
+      {
+        "admin": ">=6.0.0"
+      }
+    ],
+    "tier": 2,
+    "licenseInformation": {
+      "license": "MIT",
+      "type": "free"
+    }
+  },
+  "native": {
+    "customName": "My 3D printer",
+    "klipperPort": "80",
+    "klipperIP": "192.168.1.50",
+    "apiRefreshInterval": 60,
+    "apiRefreshIntervalOperational": 30,
+    "apiRefreshIntervalPrinting": 10,
+    "useSsl": false,
+    "auth": false,
+    "password": "",
+    "user": ""
+  },
+  "protectedNative": [
+    "user",
+    "password"
+  ],
+  "encryptedNative": [
+    "password"
+  ],
+  "objects": [],
+  "instanceObjects": [
+    {
+      "_id": "info",
+      "type": "channel",
+      "common": {
+        "name": "Information"
+      },
+      "native": {}
+    },
+    {
+      "_id": "info.connection",
+      "type": "state",
+      "common": {
+        "role": "indicator.connected",
+        "name": "Device or service connected",
+        "type": "boolean",
+        "read": true,
+        "write": false,
+        "def": false
+      },
+      "native": {}
+    }
+  ]
 }

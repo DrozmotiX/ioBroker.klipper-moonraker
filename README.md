@@ -28,8 +28,7 @@ https://github.com/th33xitus/kiauh
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-
-### __WORK IN PROGRESS__
+### 0.1.0 (2024-04-22)
 * IMPORTANT: The adapter requires Node.js 18.x+
 * (foxriver76) added state to run custom GCODE commands
 * (foxriver76) added possiblity to use authentication
