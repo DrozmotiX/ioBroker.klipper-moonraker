@@ -29,6 +29,12 @@ https://github.com/th33xitus/kiauh
     ### __WORK IN PROGRESS__
 -->
 
+### __WORK IN PROGRESS__
+- added state to run custom GCODE commands
+- added possiblity to use authentication
+- corrected some state definitions
+- ported UI to json config
+
 ### 0.0.4 (2021-03-17)
 * (DutchmanNL) Implemented rounding of digits
 * (DutchmanNL) Transfer ownership to DrozmotiX
