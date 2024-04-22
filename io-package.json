@@ -85,7 +85,6 @@
             "printing",
             "3d"
         ],
-        "license": "MIT",
         "platform": "Javascript/Node.js",
         "main": "main.js",
         "icon": "klipper-moonraker.png",
