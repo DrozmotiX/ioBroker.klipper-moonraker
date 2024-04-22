@@ -30,10 +30,11 @@ https://github.com/th33xitus/kiauh
 -->
 
 ### __WORK IN PROGRESS__
-- added state to run custom GCODE commands
-- added possiblity to use authentication
-- corrected some state definitions
-- ported UI to json config
+* IMPORTANT: The adapter requires Node.js 18.x+
+* (foxriver76) added state to run custom GCODE commands
+* (foxriver76) added possiblity to use authentication
+* (foxriver76) corrected some state definitions
+* (foxriver76) ported UI to json config
 
 ### 0.0.4 (2021-03-17)
 * (DutchmanNL) Implemented rounding of digits
@@ -57,7 +58,7 @@ https://github.com/th33xitus/kiauh
 ## License
 MIT License
 
-Copyright (c) 2020 DutchmanNL <rdrozda@hotmail.com>
+Copyright (c) 2020-2024 DutchmanNL <rdrozda@hotmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
