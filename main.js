@@ -196,7 +196,7 @@ class KlipperMoonraker extends utils.Adapter {
         const heartbeat = () => {
             this.clearTimeout(this.pingTimeout);
 
-            this.log.info('Heartbeat received');
+            this.log.debug('Heartbeat received');
 
             this.pingTimeout = setTimeout(() => {
                 this.log.error('No heartbeat received in time');
