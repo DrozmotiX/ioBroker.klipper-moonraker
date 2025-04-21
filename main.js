@@ -50,10 +50,7 @@ class KlipperMoonraker extends utils.Adapter {
         this.subscribeMethods = {};
         /** Timeout method if no pong received in time */
         this.pingTimeout = null;
-        /** Interval method to ping every X ms */
-        this.pingInterval = null;
-
-        /** Send ping every X ms */
+        /** Check for ping every X ms */
         this.PING_INTERVAL = 30_000;
         this.axios = axios.create();
     }
@@ -195,26 +192,32 @@ class KlipperMoonraker extends utils.Adapter {
             wsUrl += `?token=${this.oneShotToken}`;
         }
 
+        /** Check that we receive a ping request in time */
         const heartbeat = () => {
             this.clearTimeout(this.pingTimeout);
 
-            this.pingTimeout = setTimeout(() => {
-                ws.terminate();
-            }, this.PING_INTERVAL + 5_000);
-        };
+            this.log.info('Heartbeat received');
 
-        ws.on('pong', heartbeat);
+            this.pingTimeout = setTimeout(() => {
+                this.log.error('No heartbeat received in time');
+                ws.terminate();
+            }, this.PING_INTERVAL);
+        };
 
         // Open socket connection
         ws = new WebSocket(wsUrl, {
             rejectUnauthorized: !this.config.useSsl,
         });
 
+        ws.on('ping', heartbeat);
+
         // Connection successfully open, handle routine to initiates all objects and states
         ws.on('open', () => {
             this.log.info(`Successfully connected to ${this.config.klipperIP}:${this.config.klipperPort}`);
             this.setState('info.connection', true, true);
             connectionState = true;
+
+            heartbeat();
 
             // Get printer basic information
             ws.send(
@@ -234,10 +237,6 @@ class KlipperMoonraker extends utils.Adapter {
                 }),
             );
 
-            this.pingInterval = this.setInterval(() => {
-                ws.ping();
-            }, this.PING_INTERVAL);
-
             // Call update for all methods
             this.getAvailableMethods();
         });
@@ -245,7 +244,7 @@ class KlipperMoonraker extends utils.Adapter {
         // Handle messages received from socket connection
         ws.on('message', async data => {
             const errorOutput = data => {
-                this.log.warn(`Unexpected message received ${JSON.stringify(data)}`);
+                this.log.debug(`Unexpected message received ${JSON.stringify(data)}`);
             };
 
             const rpc_data = JSON.parse(data);
@@ -332,7 +331,6 @@ class KlipperMoonraker extends utils.Adapter {
         // Handle closure of socket connection, try to connect again in 10seconds (if adapter enabled)
         ws.on('close', () => {
             this.clearTimeout(this.pingTimeout);
-            this.clearInterval(this.pingInterval);
 
             this.log.info(`Connection closed`);
             this.setState('info.connection', false, true);
