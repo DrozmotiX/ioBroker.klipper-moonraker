@@ -196,8 +196,7 @@ class KlipperMoonraker extends utils.Adapter {
 
         // Connection successfully open, handle routine to initiates all objects and states
         ws.on('open', () => {
-            console.log(`Connection Established`);
-            this.log.info(`Successfully connected to${this.config.klipperIP}:${this.config.klipperPort}`);
+            this.log.info(`Successfully connected to ${this.config.klipperIP}:${this.config.klipperPort}`);
             this.setState('info.connection', true, true);
             connectionState = true;
 
@@ -225,15 +224,14 @@ class KlipperMoonraker extends utils.Adapter {
 
         // Handle messages received from socket connection
         ws.on('message', async data => {
-            function errorOutput(data) {
-                console.warn(`Unexpected message received ${JSON.stringify(data)}`);
-            }
+            const errorOutput = data => {
+                this.log.warn(`Unexpected message received ${JSON.stringify(data)}`);
+            };
 
             const rpc_data = JSON.parse(data);
 
             // Handle error message and return function
             if (rpc_data.error) {
-                console.error(`Received error message for "${rpc_data.id}" over websocket: ${rpc_data.error.message}`);
                 this.log.error(`Received error message for "${rpc_data.id}" over websocket: ${rpc_data.error.message}`);
                 return;
             }
@@ -265,7 +263,8 @@ class KlipperMoonraker extends utils.Adapter {
                     for (const method in rpc_data.result.objects) {
                         this.availableMethods.objects[rpc_data.result.objects[method]] = null;
                     }
-                    console.log(`All available methods : ${JSON.stringify(this.availableMethods.objects)}`);
+
+                    this.log.debug(`All available methods : ${JSON.stringify(this.availableMethods.objects)}`);
 
                     // Request state data for all available methods
                     ws.send(
@@ -300,7 +299,7 @@ class KlipperMoonraker extends utils.Adapter {
                     errorOutput(rpc_data);
                 }
             } else if (rpc_data.method && rpc_data.method == 'notify_status_update' && rpc_data.params) {
-                console.log(`Status update data received ${JSON.stringify(rpc_data)}`);
+                this.log.debug(`Status update data received ${JSON.stringify(rpc_data)}`);
                 for (const methods in rpc_data.params) {
                     this.log.debug(`Status update data received ${JSON.stringify(rpc_data)}`);
                     this.TraverseJson(rpc_data.params[methods], null, false, false);
@@ -312,7 +311,6 @@ class KlipperMoonraker extends utils.Adapter {
 
         // Handle closure of socket connection, try to connect again in 10seconds (if adapter enabled)
         ws.on('close', () => {
-            console.log(`Connection closed`);
             this.log.info(`Connection closed`);
             this.setState('info.connection', false, true);
             connectionState = false;
@@ -323,7 +321,6 @@ class KlipperMoonraker extends utils.Adapter {
                 reconnectTimer = null;
             }
             reconnectTimer = setTimeout(() => {
-                console.log(`Trying to reconnect`);
                 this.log.info(`Trying to reconnect`);
                 if (this.config.auth) {
                     try {
@@ -338,8 +335,7 @@ class KlipperMoonraker extends utils.Adapter {
 
         // Handle errors on socket connection
         ws.on('error', error => {
-            console.error(`Connection error : ${error}`);
-            this.log.error(`Connection error : ${error}`);
+            this.log.error(`Connection error: ${error}`);
             this.setState('info.connection', false, true);
             connectionState = false;
         });
@@ -359,7 +355,7 @@ class KlipperMoonraker extends utils.Adapter {
                 }),
             );
         } else {
-            console.error(`No active connection, cannot run 'getAvailableMethods'`);
+            this.log.error(`No active connection, cannot run 'getAvailableMethods'`);
         }
     }
 
@@ -454,7 +450,6 @@ class KlipperMoonraker extends utils.Adapter {
                         });
                         this.TraverseJson(o[i], id, replaceName, replaceID);
                     } else {
-                        console.log(`State ${id} received with empty array, ignore channel creation`);
                         this.log.debug(`State ${id} received with empty array, ignore channel creation`);
                     }
                 } else {
@@ -467,7 +462,6 @@ class KlipperMoonraker extends utils.Adapter {
                     if (typeof o[i] == 'object') {
                         value = JSON.stringify(value);
                     }
-                    console.log(`create id ${id} with value ${value} and name ${name}`);
                     this.log.debug(`create id ${id} with value ${value} and name ${name}`);
 
                     this.create_state(id, name, value);
@@ -680,14 +674,10 @@ class KlipperMoonraker extends utils.Adapter {
                         common.unit !== this.createdStatesDetails[stateName].unit ||
                         common.write !== this.createdStatesDetails[stateName].write))
             ) {
-                // console.log(`An attribute has changed : ${state}`);
-
                 await this.extendObjectAsync(createStateName, {
                     type: 'state',
                     common,
                 });
-            } else {
-                // console.log(`Nothing changed do not update object`);
             }
 
             // Store current object definition to memory
@@ -760,8 +750,7 @@ class KlipperMoonraker extends utils.Adapter {
                 }
             }
         } else {
-            this.log.error(`Sentry disabled, error caught : ${msg}`);
-            console.error(`Sentry disabled, error caught : ${msg}`);
+            this.log.error(`Sentry disabled, error caught: ${msg}`);
         }
     }
 }
