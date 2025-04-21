@@ -13,8 +13,8 @@ const WebSocket = require('ws');
 let ws = null; //Global variable reserved for socket connection
 let reconnectTimer = null; // Polling timer
 let connectionState = null;
-const stateExpire = {},
-    warnMessages = {}; // Timers to reset online state of device
+const stateExpire = {};
+const warnMessages = {}; // Timers to reset online state of device
 const disableSentry = false; // Ensure to set to true during development !
 const https = require('node:https');
 
@@ -48,7 +48,13 @@ class KlipperMoonraker extends utils.Adapter {
         this.availableMethods = {};
         /** List of config definitions for subscription of events */
         this.subscribeMethods = {};
+        /** Timeout method if no pong received in time */
+        this.pingTimeout = null;
+        /** Interval method to ping every X ms */
+        this.pingInterval = null;
 
+        /** Send ping every X ms */
+        this.PING_INTERVAL = 30_000;
         this.axios = axios.create();
     }
 
@@ -189,6 +195,16 @@ class KlipperMoonraker extends utils.Adapter {
             wsUrl += `?token=${this.oneShotToken}`;
         }
 
+        const heartbeat = () => {
+            this.clearTimeout(this.pingTimeout);
+
+            this.pingTimeout = setTimeout(() => {
+                ws.terminate();
+            }, this.PING_INTERVAL + 5_000);
+        };
+
+        ws.on('pong', heartbeat);
+
         // Open socket connection
         ws = new WebSocket(wsUrl, {
             rejectUnauthorized: !this.config.useSsl,
@@ -217,6 +233,10 @@ class KlipperMoonraker extends utils.Adapter {
                     id: 'printer.spoolID',
                 }),
             );
+
+            this.pingInterval = this.setInterval(() => {
+                ws.ping();
+            }, this.PING_INTERVAL);
 
             // Call update for all methods
             this.getAvailableMethods();
@@ -311,16 +331,19 @@ class KlipperMoonraker extends utils.Adapter {
 
         // Handle closure of socket connection, try to connect again in 10seconds (if adapter enabled)
         ws.on('close', () => {
+            this.clearTimeout(this.pingTimeout);
+            this.clearInterval(this.pingInterval);
+
             this.log.info(`Connection closed`);
             this.setState('info.connection', false, true);
             connectionState = false;
 
             // Try to reconnect if connections is closed after 10 seconds
             if (reconnectTimer) {
-                clearTimeout(reconnectTimer);
+                this.clearTimeout(reconnectTimer);
                 reconnectTimer = null;
             }
-            reconnectTimer = setTimeout(() => {
+            reconnectTimer = this.setTimeout(() => {
                 this.log.info(`Trying to reconnect`);
                 if (this.config.auth) {
                     try {
@@ -481,7 +504,7 @@ class KlipperMoonraker extends utils.Adapter {
         try {
             // Cancel reconnect timer if running
             if (reconnectTimer) {
-                clearTimeout(reconnectTimer);
+                this.clearTimeout(reconnectTimer);
                 reconnectTimer = null;
             }
             // Close socket connection
@@ -710,12 +733,12 @@ class KlipperMoonraker extends utils.Adapter {
             if (name === 'klippy connected') {
                 // Clear running timer
                 if (stateExpire[stateName]) {
-                    clearTimeout(stateExpire[createStateName]);
+                    this.clearTimeout(stateExpire[createStateName]);
                     stateExpire[stateName] = null;
                 }
 
                 // timer
-                stateExpire[stateName] = setTimeout(async () => {
+                stateExpire[stateName] = this.setTimeout(async () => {
                     // Set value to state including expiration time
                     await this.setState(createStateName, {
                         val: false,
