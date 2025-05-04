@@ -186,7 +186,7 @@ class KlipperMoonraker extends utils.Adapter {
     /**
      * Handle all websocket related data interaction
      */
-    async handleWebSocket() {
+    handleWebSocket() {
         let wsUrl = `${this.config.useSsl ? 'wss' : 'ws'}://${this.config.klipperIP}:${this.config.klipperPort}/websocket`;
         if (this.config.auth) {
             wsUrl += `?token=${this.oneShotToken}`;
@@ -341,11 +341,11 @@ class KlipperMoonraker extends utils.Adapter {
                 this.clearTimeout(reconnectTimer);
                 reconnectTimer = null;
             }
-            reconnectTimer = this.setTimeout(() => {
+            reconnectTimer = this.setTimeout(async () => {
                 this.log.info(`Trying to reconnect`);
                 if (this.config.auth) {
                     try {
-                        this.getOneShotToken();
+                        await this.getOneShotToken();
                     } catch (e) {
                         this.log.error(e.message);
                     }
