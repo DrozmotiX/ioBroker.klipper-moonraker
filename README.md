@@ -28,6 +28,10 @@ https://github.com/th33xitus/kiauh
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+
+### __WORK IN PROGRESS__
+* (@foxriver76) detect stale connections
+
 ### 0.1.0 (2024-04-22)
 * IMPORTANT: The adapter requires Node.js 18.x+
 * (foxriver76) added state to run custom GCODE commands
@@ -57,7 +61,7 @@ https://github.com/th33xitus/kiauh
 ## License
 MIT License
 
-Copyright (c) 2020-2024 DutchmanNL <rdrozda@hotmail.com>
+Copyright (c) 2020-2025 DutchmanNL <rdrozda@hotmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
