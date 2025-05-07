@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "klipper-moonraker",
-    "version": "0.1.0",
+    "version": "0.1.1",
     "news": {
+      "0.1.1": {
+        "en": "(@foxriver76) detect stale connections",
+        "de": "(@foxriver76) verbindungen erkennen",
+        "ru": "(@foxriver76) обнаружение устаревших соединений",
+        "pt": "(@foxriver76) detecta conexões de estalo",
+        "nl": "(@foxriver76) detecteer oude verbindingen",
+        "fr": "(@foxriver76) détecter les connexions statiques",
+        "it": "(@foxriver76) rileva collegamenti stanti",
+        "es": "(@foxriver76) detecta conexiones de estantería",
+        "pl": "(@ foxriver76) wykryj nieregularne połączenia",
+        "uk": "(@foxriver76) виявляти застібки",
+        "zh-cn": "(@foxriver76) 检测断层连接"
+      },
       "0.1.0": {
         "en": "IMPORTANT: The adapter requires Node.js 18.x+\nadded state to run custom GCODE commands\nadded possiblity to use authentication\ncorrected some state definitions\nported UI to json config",
         "de": "WICHTIG: Der Adapter benötigt Node.js 18.x+\nstatus hinzugefügt, um benutzerdefinierte GCODE-Befehle auszuführen\nhinzugefügt possiblity zu verwenden authentifizierung\neinige staatliche definitionen korrigiert\nportiert UI zu json config",

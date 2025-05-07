@@ -28,8 +28,7 @@ https://github.com/th33xitus/kiauh
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
-
-### __WORK IN PROGRESS__
+### 0.1.1 (2025-05-07)
 * (@foxriver76) detect stale connections
 
 ### 0.1.0 (2024-04-22)
