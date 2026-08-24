@@ -28,6 +28,9 @@ https://github.com/th33xitus/kiauh
     Placeholder for the next version (at the beginning of the line):
     ### __WORK IN PROGRESS__
 -->
+### __WORK IN PROGRESS__
+* (DutchmanNL) Maintenance: raise Node.js to 22, modernise CI and release tooling, update dependencies, resolve repository checker findings
+
 ### 0.1.1 (2025-05-07)
 * (@foxriver76) detect stale connections
 

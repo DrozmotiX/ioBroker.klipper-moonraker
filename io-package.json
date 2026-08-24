@@ -39,46 +39,10 @@
         "it": "Arrotondamento delle cifre implementato\nTrasferisci la proprietà a DrozmotiX\nMigliora l'automerge per gli aggiornamenti delle dipendenze\nAggiorna le relazioni degli attributi di stato",
         "es": "Redondeo de dígitos implementado\nTransferir la propiedad a DrozmotiX\nMejorar la automatización para las actualizaciones de dependencias\nActualizar relaciones de atributos de estado",
         "pl": "Zaimplementowano zaokrąglanie cyfr\nPrzenieś własność na DrozmotiX\nPopraw automerge dla aktualizacji zależności\nZaktualizuj relacje atrybutów stanu",
+        "uk": "Реалізовано округлення цифр\nПередача власності до DrozmotiX\nПокращено автозлиття для оновлень залежностей\nОновлено зв'язки атрибутів станів",
         "zh-cn": "实施数字舍入\n将所有权转让给DrozmotiX\n改进自动合并以更新依赖项\n更新状态属性关系"
-      },
-      "0.0.3": {
-        "en": "Switch from data-polling to live socket events :-)\nEnsure all states and objects available are created\nreconnect if connection closes (retry after 10 sec, ToDo : make adjustable)",
-        "de": "Wechseln Sie von Datenabfragen zu Live-Socket-Ereignissen :-)\nStellen Sie sicher, dass alle verfügbaren Status und Objekte erstellt wurden\nStellen Sie die Verbindung wieder her, wenn die Verbindung geschlossen wird (versuchen Sie es nach 10 Sekunden erneut. ToDo: Einstellbar machen)",
-        "ru": "Переключитесь с опроса данных на живые события сокета :-)\nУбедитесь, что созданы все доступные состояния и объекты.\nповторно подключиться, если соединение закрывается (повторить попытку через 10 секунд, ToDo: сделать настраиваемым)",
-        "pt": "Mudar de pesquisa de dados para eventos de soquete ao vivo :-)\nCertifique-se de que todos os estados e objetos disponíveis sejam criados\nreconecte se a conexão for fechada (tente novamente após 10 segundos, ToDo: tornar ajustável)",
-        "nl": "Overschakelen van datapolling naar live socket-evenementen :-)\nZorg ervoor dat alle beschikbare staten en objecten zijn gemaakt\nmaak opnieuw verbinding als de verbinding wordt verbroken (probeer het opnieuw na 10 seconden, ToDo: aanpasbaar maken)",
-        "fr": "Passer de l'interrogation de données aux événements de socket en direct :-)\nAssurez-vous que tous les états et objets disponibles sont créés\nse reconnecter si la connexion se ferme (réessayer après 10 sec, ToDo: rendre réglable)",
-        "it": "Passa dal polling dei dati agli eventi live socket :-)\nAssicurarsi che tutti gli stati e gli oggetti disponibili siano stati creati\nriconnettersi se la connessione si chiude (riprovare dopo 10 sec, ToDo: rendere regolabile)",
-        "es": "Cambie del sondeo de datos a eventos de socket en vivo :-)\nAsegúrese de que se creen todos los estados y objetos disponibles\nvuelva a conectar si la conexión se cierra (vuelva a intentarlo después de 10 segundos, Tareas pendientes: hacer ajustable)",
-        "pl": "Przełącz się z odpytywania danych na zdarzenia dotyczące gniazd na żywo :-)\nUpewnij się, że zostały utworzone wszystkie dostępne stany i obiekty\npołącz ponownie, jeśli połączenie zostanie zamknięte (spróbuj ponownie po 10 sekundach, Do zrobienia: ustaw)",
-        "zh-cn": "从数据轮询切换到实时套接字事件：-)\n确保创建了所有可用状态和对象\n如果连接关闭则重新连接（10秒钟后重试，待办事项：可调）"
-      },
-      "0.0.2": {
-        "en": "Implement control commands\nProper error handling for API calls\nupdate state attributes for control commands",
-        "de": "Implementieren Sie Steuerbefehle\nRichtige Fehlerbehandlung für API-Aufrufe\nStatusattribute für Steuerbefehle aktualisieren",
-        "ru": "Команды управления агрегатом\nПравильная обработка ошибок для вызовов API\nобновить атрибуты состояния для управляющих команд",
-        "pt": "Implementar comandos de controle\nTratamento adequado de erros para chamadas de API\natualizar atributos de estado para comandos de controle",
-        "nl": "Implementeer besturingsopdrachten\nJuiste foutafhandeling voor API-aanroepen\nupdate statusattributen voor besturingsopdrachten",
-        "fr": "Mettre en œuvre des commandes de contrôle\nGestion correcte des erreurs pour les appels d'API\nmettre à jour les attributs d'état pour les commandes de contrôle",
-        "it": "Implementare i comandi di controllo\nCorretta gestione degli errori per le chiamate API\naggiorna gli attributi di stato per i comandi di controllo",
-        "es": "Implementar comandos de control\nManejo adecuado de errores para llamadas a API\nactualizar atributos de estado para comandos de control",
-        "pl": "Wdrażaj polecenia sterujące\nWłaściwa obsługa błędów dla wywołań API\nzaktualizuj atrybuty stanu dla poleceń sterujących",
-        "zh-cn": "实施控制命令\nAPI调用的正确错误处理\n更新控制命令的状态属性"
-      },
-      "0.0.1": {
-        "en": "initial release",
-        "de": "Erstveröffentlichung",
-        "ru": "Начальная версия",
-        "pt": "lançamento inicial",
-        "nl": "Eerste uitgave",
-        "fr": "Première version",
-        "it": "Versione iniziale",
-        "es": "Versión inicial",
-        "pl": "Pierwsze wydanie",
-        "zh-cn": "首次出版"
       }
     },
-    "title": "Klipper Moonraker",
     "titleLang": {
       "en": "Klipper Moonraker",
       "de": "Klipper Moonraker",
@@ -89,6 +53,7 @@
       "it": "Klipper Moonraker",
       "es": "Klipper Moonraker",
       "pl": "Klipper Moonraker",
+      "uk": "Klipper Moonraker",
       "zh-cn": "Klipper Moonraker"
     },
     "desc": {
@@ -101,6 +66,7 @@
       "it": "Adattatore per interagire con klipper tramite API",
       "es": "Adaptador para interactuar con klipper por API",
       "pl": "Adapter do interakcji z klipper przez API",
+      "uk": "Адаптер для взаємодії з klipper через API",
       "zh-cn": "通过API与Klipper交互的适配器"
     },
     "authors": [
@@ -109,10 +75,10 @@
     "keywords": [
       "klipper",
       "printing",
-      "3d"
+      "3d",
+      "ioBroker"
     ],
     "platform": "Javascript/Node.js",
-    "main": "main.js",
     "icon": "klipper-moonraker.png",
     "enabled": true,
     "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.klipper-moonraker/master/admin/klipper-moonraker.png",
@@ -123,18 +89,17 @@
     "compact": true,
     "connectionType": "local",
     "dataSource": "poll",
-    "materialize": true,
     "adminUI": {
       "config": "json"
     },
     "dependencies": [
       {
-        "js-controller": ">=4.0.0"
+        "js-controller": ">=6.0.11"
       }
     ],
     "globalDependencies": [
       {
-        "admin": ">=6.0.0"
+        "admin": ">=7.6.20"
       }
     ],
     "tier": 2,

@@ -5,19 +5,34 @@
       "label": "Name",
       "default": "My 3D printer",
       "type": "text",
-      "help": "Define your own printer name for this instance"
+      "help": "Define your own printer name for this instance",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "klipperPort": {
       "newLine": true,
       "label": "Port",
       "type": "number",
-      "default": 80
+      "default": 80,
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "klipperIP": {
       "label": "IP",
       "type": "text",
       "default": "192.168.1.50",
-      "help": "IP of your Klipper installation"
+      "help": "IP of your Klipper installation",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "apiRefreshInterval": {
       "newLine": true,
@@ -25,46 +40,81 @@
       "default": 60,
       "min": 1,
       "type": "number",
-      "help": "in Seconds"
+      "help": "in Seconds",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "apiRefreshIntervalOperational": {
       "label": "Operational refresh interval",
       "default": 30,
       "min": 1,
       "type": "number",
-      "help": "in Seconds"
+      "help": "in Seconds",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "apiRefreshIntervalPrinting": {
       "label": "Printing refresh interval",
       "default": 10,
       "min": 1,
       "type": "number",
-      "help": "in Seconds"
+      "help": "in Seconds",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "auth": {
       "newLine": true,
       "label": "Authenticate",
       "type": "checkbox",
       "default": false,
-      "help": "If authentication is required"
+      "help": "If authentication is required",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "useSsl": {
       "type": "checkbox",
       "label": "Use SSL",
-      "help": "If the API is reachable over https"
+      "help": "If the API is reachable over https",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "user": {
       "newLine": true,
       "label": "Username",
       "type": "text",
       "default": "",
-      "hidden": "!data.auth"
+      "hidden": "!data.auth",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     },
     "password": {
       "label": "Password",
       "type": "password",
       "default": "",
-      "hidden": "!data.auth"
+      "hidden": "!data.auth",
+      "xs": 12,
+      "sm": 12,
+      "md": 6,
+      "lg": 4,
+      "xl": 4
     }
   }
 }

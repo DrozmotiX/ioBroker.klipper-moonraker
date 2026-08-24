@@ -146,7 +146,7 @@ class KlipperMoonraker extends utils.Adapter {
         await this.login();
         await this.getOneShotToken();
 
-        this.setInterval(() => {
+        this.refreshTokenInterval = this.setInterval(() => {
             this.log.info('Refresh access token');
             try {
                 this.refreshAccessToken();
@@ -500,6 +500,11 @@ class KlipperMoonraker extends utils.Adapter {
      */
     onUnload(callback) {
         try {
+            // Cancel access token refresh interval if running
+            if (this.refreshTokenInterval) {
+                this.clearInterval(this.refreshTokenInterval);
+                this.refreshTokenInterval = null;
+            }
             // Cancel reconnect timer if running
             if (reconnectTimer) {
                 this.clearTimeout(reconnectTimer);
