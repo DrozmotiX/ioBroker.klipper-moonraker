@@ -1,0 +1,17 @@
+{
+    "Name": "Naam",
+    "Port": "Poort",
+    "IP": "IP",
+    "Refresh interval": "Verversingsinterval",
+    "Operational refresh interval": "Verversingsinterval bij gebruik",
+    "Printing refresh interval": "Verversingsinterval tijdens printen",
+    "Authenticate": "Authenticeren",
+    "Use SSL": "SSL gebruiken",
+    "Username": "Gebruikersnaam",
+    "Password": "Wachtwoord",
+    "Define your own printer name for this instance": "Geef een eigen printernaam op voor deze instantie",
+    "IP of your Klipper installation": "IP van je Klipper-installatie",
+    "in Seconds": "in seconden",
+    "If authentication is required": "Als authenticatie vereist is",
+    "If the API is reachable over https": "Als de API bereikbaar is via https"
+}

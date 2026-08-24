@@ -1,0 +1,17 @@
+{
+    "Name": "Name",
+    "Port": "Port",
+    "IP": "IP",
+    "Refresh interval": "Refresh interval",
+    "Operational refresh interval": "Operational refresh interval",
+    "Printing refresh interval": "Printing refresh interval",
+    "Authenticate": "Authenticate",
+    "Use SSL": "Use SSL",
+    "Username": "Username",
+    "Password": "Password",
+    "Define your own printer name for this instance": "Define your own printer name for this instance",
+    "IP of your Klipper installation": "IP of your Klipper installation",
+    "in Seconds": "in Seconds",
+    "If authentication is required": "If authentication is required",
+    "If the API is reachable over https": "If the API is reachable over https"
+}

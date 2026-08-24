@@ -1,0 +1,17 @@
+{
+    "Name": "Nombre",
+    "Port": "Puerto",
+    "IP": "IP",
+    "Refresh interval": "Intervalo de actualización",
+    "Operational refresh interval": "Intervalo de actualización operativo",
+    "Printing refresh interval": "Intervalo de actualización durante la impresión",
+    "Authenticate": "Autenticar",
+    "Use SSL": "Usar SSL",
+    "Username": "Nombre de usuario",
+    "Password": "Contraseña",
+    "Define your own printer name for this instance": "Defina su propio nombre de impresora para esta instancia",
+    "IP of your Klipper installation": "IP de su instalación de Klipper",
+    "in Seconds": "en segundos",
+    "If authentication is required": "Si se requiere autenticación",
+    "If the API is reachable over https": "Si la API es accesible por https"
+}

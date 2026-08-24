@@ -74,15 +74,15 @@
     ],
     "keywords": [
       "klipper",
+      "moonraker",
       "printing",
-      "3d",
-      "ioBroker"
+      "3d"
     ],
     "platform": "Javascript/Node.js",
     "icon": "klipper-moonraker.png",
     "enabled": true,
-    "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.klipper-moonraker/master/admin/klipper-moonraker.png",
-    "readme": "https://github.com/DrozmotiX/ioBroker.klipper-moonraker/blob/master/README.md",
+    "extIcon": "https://raw.githubusercontent.com/DrozmotiX/ioBroker.klipper-moonraker/main/admin/klipper-moonraker.png",
+    "readme": "https://github.com/DrozmotiX/ioBroker.klipper-moonraker/blob/main/README.md",
     "loglevel": "info",
     "mode": "daemon",
     "type": "hardware",

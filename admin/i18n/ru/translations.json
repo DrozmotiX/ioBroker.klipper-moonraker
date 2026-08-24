@@ -1,0 +1,17 @@
+{
+    "Name": "Имя",
+    "Port": "Порт",
+    "IP": "IP",
+    "Refresh interval": "Интервал обновления",
+    "Operational refresh interval": "Интервал обновления в рабочем режиме",
+    "Printing refresh interval": "Интервал обновления при печати",
+    "Authenticate": "Аутентификация",
+    "Use SSL": "Использовать SSL",
+    "Username": "Имя пользователя",
+    "Password": "Пароль",
+    "Define your own printer name for this instance": "Задайте собственное имя принтера для этого экземпляра",
+    "IP of your Klipper installation": "IP вашей установки Klipper",
+    "in Seconds": "в секундах",
+    "If authentication is required": "Если требуется аутентификация",
+    "If the API is reachable over https": "Если API доступен по https"
+}

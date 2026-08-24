@@ -1,0 +1,17 @@
+{
+    "Name": "名称",
+    "Port": "端口",
+    "IP": "IP",
+    "Refresh interval": "刷新间隔",
+    "Operational refresh interval": "运行时刷新间隔",
+    "Printing refresh interval": "打印时刷新间隔",
+    "Authenticate": "身份验证",
+    "Use SSL": "使用 SSL",
+    "Username": "用户名",
+    "Password": "密码",
+    "Define your own printer name for this instance": "为此实例定义您自己的打印机名称",
+    "IP of your Klipper installation": "您的 Klipper 安装的 IP",
+    "in Seconds": "以秒为单位",
+    "If authentication is required": "如果需要身份验证",
+    "If the API is reachable over https": "如果 API 可通过 https 访问"
+}
